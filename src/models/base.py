@@ -25,6 +25,21 @@ def get_xgb_params() -> dict:
     }
 
 
+def get_xgb_params_c() -> dict:
+    """Regularised params for Model C (21 features, 366 samples — higher overfit risk)."""
+    return {
+        "n_estimators": 200,
+        "max_depth": 3,
+        "learning_rate": 0.1,
+        "subsample": 0.8,
+        "colsample_bytree": 0.6,
+        "min_child_weight": 3,
+        "reg_lambda": 3.0,
+        "eval_metric": "mlogloss",
+        "random_state": RANDOM_STATE,
+    }
+
+
 def cross_validate_model(X: pd.DataFrame, y: pd.Series, label: str) -> dict:
     """
     Stratified 10-fold CV with XGBoost. Returns aggregated metrics.

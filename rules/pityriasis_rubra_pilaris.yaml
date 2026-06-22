@@ -10,6 +10,15 @@
     - feature: scaling
       threshold: 0.5
 
+# Follicular papules alone are near-pathognomonic for PRP among the ESD group
+- id: PRP_A02
+  disease: pityriasis_rubra_pilaris
+  tier: A
+  weight: 0.9
+  conditions:
+    - feature: follicular_papules
+      threshold: 0.5
+
 - id: PRP_B01
   disease: pityriasis_rubra_pilaris
   tier: B
@@ -36,6 +45,7 @@
     - feature: itching
       threshold: 0.33
 
+# Koebner = psoriasis/LP; its presence argues against PRP
 - id: PRP_D01
   disease: pityriasis_rubra_pilaris
   tier: D
@@ -43,4 +53,24 @@
   competitor: psoriasis
   conditions:
     - feature: koebner_phenomenon
+      threshold: 0.5
+
+# Oral mucosal involvement = lichen planus, not PRP
+- id: PRP_D02
+  disease: pityriasis_rubra_pilaris
+  tier: D
+  weight: 0.5
+  competitor: lichen_planus
+  conditions:
+    - feature: oral_mucosal_involvement
+      threshold: 0.5
+
+# Polygonal papules = lichen planus, not PRP
+- id: PRP_D03
+  disease: pityriasis_rubra_pilaris
+  tier: D
+  weight: 0.5
+  competitor: lichen_planus
+  conditions:
+    - feature: polygonal_papules
       threshold: 0.5

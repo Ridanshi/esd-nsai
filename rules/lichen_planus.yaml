@@ -20,6 +20,15 @@
     - feature: koebner_phenomenon
       threshold: 0.5
 
+# Polygonal papules alone are pathognomonic for lichen planus
+- id: LIC_A03
+  disease: lichen_planus
+  tier: A
+  weight: 0.85
+  conditions:
+    - feature: polygonal_papules
+      threshold: 0.5
+
 - id: LIC_B01
   disease: lichen_planus
   tier: B
@@ -28,12 +37,13 @@
     - feature: itching
       threshold: 0.5
 
+# Oral mucosal involvement (Wickham's striae) is highly specific to lichen planus
 - id: LIC_B02
   disease: lichen_planus
   tier: B
-  weight: 0.6
+  weight: 0.7
   conditions:
-    - feature: follicular_papules
+    - feature: oral_mucosal_involvement
       threshold: 0.5
 
 - id: LIC_C01
@@ -43,3 +53,13 @@
   conditions:
     - feature: erythema
       threshold: 0.33
+
+# Follicular papules indicate PRP, not lichen planus — penalise LP when present
+- id: LIC_D01
+  disease: lichen_planus
+  tier: D
+  weight: 0.5
+  competitor: pityriasis_rubra_pilaris
+  conditions:
+    - feature: follicular_papules
+      threshold: 0.5

@@ -1,5 +1,7 @@
 # rules/chronic_dermatitis.yaml
 # Source: Fitzpatrick's Dermatology, Andrews' Diseases of the Skin
+# Chronic dermatitis (atopic eczema) is largely a diagnosis of exclusion clinically;
+# its strongest distinguishing signs are intense pruritus and ill-defined borders.
 - id: CHR_B01
   disease: chronic_dermatitis
   tier: B
@@ -18,12 +20,18 @@
     - feature: scaling
       threshold: 0.33
 
+# High-intensity itch + scaling + erythema — atopic eczema triad
+# Threshold 0.67 (score 2/3) selects moderate-to-severe pruritus, mildly specific
 - id: CHR_B03
   disease: chronic_dermatitis
   tier: B
-  weight: 0.6
+  weight: 0.7
   conditions:
-    - feature: definite_borders
+    - feature: itching
+      threshold: 0.67
+    - feature: erythema
+      threshold: 0.33
+    - feature: scaling
       threshold: 0.33
 
 - id: CHR_C01
@@ -31,17 +39,10 @@
   tier: C
   weight: 0.3
   conditions:
-    - feature: follicular_papules
-      threshold: 0.5
-
-- id: CHR_C02
-  disease: chronic_dermatitis
-  tier: C
-  weight: 0.3
-  conditions:
     - feature: erythema
       threshold: 0.5
 
+# Koebner = psoriasis/LP; penalise chronic dermatitis
 - id: CHR_D01
   disease: chronic_dermatitis
   tier: D
@@ -49,4 +50,34 @@
   competitor: psoriasis
   conditions:
     - feature: koebner_phenomenon
+      threshold: 0.5
+
+# Polygonal papules are pathognomonic for LP — exclude chronic dermatitis
+- id: CHR_D02
+  disease: chronic_dermatitis
+  tier: D
+  weight: 0.5
+  competitor: lichen_planus
+  conditions:
+    - feature: polygonal_papules
+      threshold: 0.5
+
+# Oral involvement = LP — penalise chronic dermatitis
+- id: CHR_D03
+  disease: chronic_dermatitis
+  tier: D
+  weight: 0.5
+  competitor: lichen_planus
+  conditions:
+    - feature: oral_mucosal_involvement
+      threshold: 0.5
+
+# Follicular papules = PRP — penalise chronic dermatitis
+- id: CHR_D04
+  disease: chronic_dermatitis
+  tier: D
+  weight: 0.45
+  competitor: pityriasis_rubra_pilaris
+  conditions:
+    - feature: follicular_papules
       threshold: 0.5

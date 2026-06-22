@@ -12,6 +12,7 @@ def engine():
 
 @pytest.fixture
 def psoriasis_patient():
+    # family_history=1.0: ~30% of psoriasis patients have positive family history (HLA-Cw6)
     return pd.Series({
         "erythema": 0.6667,
         "scaling": 0.6667,
@@ -23,7 +24,7 @@ def psoriasis_patient():
         "oral_mucosal_involvement": 0.0,
         "knee_elbow_involvement": 1.0,
         "scalp_involvement": 1.0,
-        "family_history": 0.0,
+        "family_history": 1.0,
         "age": 0.4375,
     })
 

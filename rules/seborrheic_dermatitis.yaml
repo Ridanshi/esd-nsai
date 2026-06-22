@@ -12,6 +12,19 @@
     - feature: erythema
       threshold: 0.33
 
+# Classic dandruff triad — itchy, greasy scalp with scaling
+- id: SEB_A02
+  disease: seborrheic_dermatitis
+  tier: A
+  weight: 0.9
+  conditions:
+    - feature: scalp_involvement
+      threshold: 0.5
+    - feature: itching
+      threshold: 0.33
+    - feature: scaling
+      threshold: 0.33
+
 - id: SEB_B01
   disease: seborrheic_dermatitis
   tier: B
@@ -36,6 +49,7 @@
     - feature: definite_borders
       threshold: 0.33
 
+# Koebner = psoriasis/LP, not seborrheic dermatitis
 - id: SEB_D01
   disease: seborrheic_dermatitis
   tier: D
@@ -43,4 +57,14 @@
   competitor: psoriasis
   conditions:
     - feature: koebner_phenomenon
+      threshold: 0.5
+
+# Seb derm affects sebaceous-rich zones (scalp, face), not extensor surfaces
+- id: SEB_D02
+  disease: seborrheic_dermatitis
+  tier: D
+  weight: 0.5
+  competitor: psoriasis
+  conditions:
+    - feature: knee_elbow_involvement
       threshold: 0.5

@@ -1,0 +1,46 @@
+# rules/seborrheic_dermatitis.yaml
+# Source: Fitzpatrick's Dermatology, Andrews' Diseases of the Skin
+- id: SEB_A01
+  disease: seborrheic_dermatitis
+  tier: A
+  weight: 1.0
+  conditions:
+    - feature: scalp_involvement
+      threshold: 0.5
+    - feature: scaling
+      threshold: 0.33
+    - feature: erythema
+      threshold: 0.33
+
+- id: SEB_B01
+  disease: seborrheic_dermatitis
+  tier: B
+  weight: 0.6
+  conditions:
+    - feature: itching
+      threshold: 0.33
+
+- id: SEB_B02
+  disease: seborrheic_dermatitis
+  tier: B
+  weight: 0.6
+  conditions:
+    - feature: scaling
+      threshold: 0.5
+
+- id: SEB_C01
+  disease: seborrheic_dermatitis
+  tier: C
+  weight: 0.3
+  conditions:
+    - feature: definite_borders
+      threshold: 0.33
+
+- id: SEB_D01
+  disease: seborrheic_dermatitis
+  tier: D
+  weight: 0.4
+  competitor: psoriasis
+  conditions:
+    - feature: koebner_phenomenon
+      threshold: 0.5

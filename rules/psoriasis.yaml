@@ -1,0 +1,48 @@
+# rules/psoriasis.yaml
+# Source: Fitzpatrick's Dermatology, Andrews' Diseases of the Skin
+- id: PSO_A01
+  disease: psoriasis
+  tier: A
+  weight: 1.0
+  conditions:
+    - feature: koebner_phenomenon
+      threshold: 0.5
+    - feature: knee_elbow_involvement
+      threshold: 0.5
+    - feature: scalp_involvement
+      threshold: 0.5
+
+- id: PSO_B01
+  disease: psoriasis
+  tier: B
+  weight: 0.6
+  conditions:
+    - feature: scaling
+      threshold: 0.5
+    - feature: erythema
+      threshold: 0.5
+
+- id: PSO_B02
+  disease: psoriasis
+  tier: B
+  weight: 0.6
+  conditions:
+    - feature: family_history
+      threshold: 0.5
+
+- id: PSO_C01
+  disease: psoriasis
+  tier: C
+  weight: 0.3
+  conditions:
+    - feature: definite_borders
+      threshold: 0.5
+
+- id: PSO_D01
+  disease: psoriasis
+  tier: D
+  weight: 0.4
+  competitor: lichen_planus
+  conditions:
+    - feature: polygonal_papules
+      threshold: 0.5

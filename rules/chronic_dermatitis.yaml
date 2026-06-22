@@ -1,0 +1,52 @@
+# rules/chronic_dermatitis.yaml
+# Source: Fitzpatrick's Dermatology, Andrews' Diseases of the Skin
+- id: CHR_B01
+  disease: chronic_dermatitis
+  tier: B
+  weight: 0.6
+  conditions:
+    - feature: itching
+      threshold: 0.5
+    - feature: erythema
+      threshold: 0.33
+
+- id: CHR_B02
+  disease: chronic_dermatitis
+  tier: B
+  weight: 0.6
+  conditions:
+    - feature: scaling
+      threshold: 0.33
+
+- id: CHR_B03
+  disease: chronic_dermatitis
+  tier: B
+  weight: 0.6
+  conditions:
+    - feature: definite_borders
+      threshold: 0.33
+
+- id: CHR_C01
+  disease: chronic_dermatitis
+  tier: C
+  weight: 0.3
+  conditions:
+    - feature: follicular_papules
+      threshold: 0.5
+
+- id: CHR_C02
+  disease: chronic_dermatitis
+  tier: C
+  weight: 0.3
+  conditions:
+    - feature: erythema
+      threshold: 0.5
+
+- id: CHR_D01
+  disease: chronic_dermatitis
+  tier: D
+  weight: 0.4
+  competitor: psoriasis
+  conditions:
+    - feature: koebner_phenomenon
+      threshold: 0.5

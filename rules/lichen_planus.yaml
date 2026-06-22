@@ -1,0 +1,45 @@
+# rules/lichen_planus.yaml
+# Source: Fitzpatrick's Dermatology, Andrews' Diseases of the Skin
+- id: LIC_A01
+  disease: lichen_planus
+  tier: A
+  weight: 1.0
+  conditions:
+    - feature: polygonal_papules
+      threshold: 0.5
+    - feature: oral_mucosal_involvement
+      threshold: 0.5
+
+- id: LIC_A02
+  disease: lichen_planus
+  tier: A
+  weight: 1.0
+  conditions:
+    - feature: polygonal_papules
+      threshold: 0.5
+    - feature: koebner_phenomenon
+      threshold: 0.5
+
+- id: LIC_B01
+  disease: lichen_planus
+  tier: B
+  weight: 0.6
+  conditions:
+    - feature: itching
+      threshold: 0.5
+
+- id: LIC_B02
+  disease: lichen_planus
+  tier: B
+  weight: 0.6
+  conditions:
+    - feature: follicular_papules
+      threshold: 0.5
+
+- id: LIC_C01
+  disease: lichen_planus
+  tier: C
+  weight: 0.3
+  conditions:
+    - feature: erythema
+      threshold: 0.33

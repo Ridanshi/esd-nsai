@@ -1,0 +1,46 @@
+# rules/pityriasis_rosea.yaml
+# Source: Fitzpatrick's Dermatology, Andrews' Diseases of the Skin
+- id: PIT_A01
+  disease: pityriasis_rosea
+  tier: A
+  weight: 1.0
+  conditions:
+    - feature: definite_borders
+      threshold: 0.5
+    - feature: scaling
+      threshold: 0.33
+    - feature: erythema
+      threshold: 0.33
+
+- id: PIT_B01
+  disease: pityriasis_rosea
+  tier: B
+  weight: 0.6
+  conditions:
+    - feature: itching
+      threshold: 0.33
+
+- id: PIT_B02
+  disease: pityriasis_rosea
+  tier: B
+  weight: 0.6
+  conditions:
+    - feature: scaling
+      threshold: 0.33
+
+- id: PIT_C01
+  disease: pityriasis_rosea
+  tier: C
+  weight: 0.3
+  conditions:
+    - feature: erythema
+      threshold: 0.33
+
+- id: PIT_D01
+  disease: pityriasis_rosea
+  tier: D
+  weight: 0.4
+  competitor: psoriasis
+  conditions:
+    - feature: koebner_phenomenon
+      threshold: 0.5

@@ -5,13 +5,13 @@ import numpy as np
 CLINICAL_FEATURES = [
     "erythema", "scaling", "definite_borders", "itching",
     "koebner_phenomenon", "polygonal_papules", "follicular_papules",
-    "oral_mucosal_involvement", "knee_and_elbow_involvement",
+    "oral_mucosal_involvement", "knee_elbow_involvement",
     "scalp_involvement", "family_history", "age"
 ]
 
 BINARY_FEATURES = [
     "koebner_phenomenon", "polygonal_papules", "follicular_papules",
-    "oral_mucosal_involvement", "knee_and_elbow_involvement",
+    "oral_mucosal_involvement", "knee_elbow_involvement",
     "scalp_involvement", "family_history"
 ]
 
@@ -45,7 +45,7 @@ def sample_patient_ordinal():
         "polygonal_papules": 0,
         "follicular_papules": 0,
         "oral_mucosal_involvement": 0,
-        "knee_and_elbow_involvement": 1,
+        "knee_elbow_involvement": 1,
         "scalp_involvement": 1,
         "family_history": 0,
         "age": 35,
@@ -63,7 +63,7 @@ def sample_patient_fuzzy():
         "polygonal_papules": 0.0,
         "follicular_papules": 0.0,
         "oral_mucosal_involvement": 0.0,
-        "knee_and_elbow_involvement": 1.0,
+        "knee_elbow_involvement": 1.0,
         "scalp_involvement": 1.0,
         "family_history": 0.0,
         "age": 0.4375,  # 35 / 80

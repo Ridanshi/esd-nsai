@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Plots generated at runtime
+*.png
+*.pdf
+
+# Session and internal planning docs
+session.md
+docs/superpowers/
+
+# OS
+.DS_Store
+Thumbs.db

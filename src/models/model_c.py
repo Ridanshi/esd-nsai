@@ -1,8 +1,9 @@
 import pandas as pd
 from xgboost import XGBClassifier
 from src.grading.fuzzy_grader import FuzzyGrader
+from src.grading.feature_engineer import FeatureEngineer
 from src.symbolic.pipeline import SymbolicPipeline
-from src.models.base import cross_validate_model, get_xgb_params_c, RANDOM_STATE
+from src.models.base import get_xgb_params_c, RANDOM_STATE
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 import numpy as np
@@ -11,18 +12,21 @@ from src.models.base import DISEASES, N_SPLITS
 
 def run_model_c(X_clinical: pd.DataFrame, y: pd.Series, rules_dir: str = "rules") -> dict:
     """
-    Model C: 12 fuzzy clinical features + 9 symbolic outputs = 21 features.
-    Uses regularised XGBoost params to reduce overfit on the expanded feature set.
+    Model C: 12 fuzzy + 9 engineered + 9 symbolic = 30 features.
+    Pipeline: raw → FuzzyGrader → FeatureEngineer → SymbolicPipeline → XGBoost.
     """
     grader = FuzzyGrader()
     X_fuzzy = grader.grade(X_clinical).reset_index(drop=True)
 
+    engineer = FeatureEngineer()
+    X_engineered = engineer.engineer(X_fuzzy)
+
     pipeline = SymbolicPipeline(rules_dir)
     X_symbolic = pipeline.transform(X_fuzzy).reset_index(drop=True)
 
-    X_combined = pd.concat([X_fuzzy, X_symbolic], axis=1)
+    X_combined = pd.concat([X_fuzzy, X_engineered, X_symbolic], axis=1)
 
-    results = _cross_validate_c(X_combined, y, label="Model C (12 clinical + 9 symbolic)")
+    results = _cross_validate_c(X_combined, y, label="Model C (12 fuzzy + 9 engineered + 9 symbolic)")
     results["X_combined"] = X_combined
     return results
 

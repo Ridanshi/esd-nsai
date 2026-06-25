@@ -1,19 +1,18 @@
 import pandas as pd
+import numpy as np
 from xgboost import XGBClassifier
 from src.grading.fuzzy_grader import FuzzyGrader
 from src.grading.feature_engineer import FeatureEngineer
 from src.symbolic.pipeline import SymbolicPipeline
-from src.models.base import get_xgb_params_c, RANDOM_STATE
+from src.models.base import get_xgb_params_c, RANDOM_STATE, DISEASES, N_SPLITS
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
-import numpy as np
-from src.models.base import DISEASES, N_SPLITS
 
 
 def run_model_c(X_clinical: pd.DataFrame, y: pd.Series, rules_dir: str = "rules") -> dict:
     """
-    Model C: 12 fuzzy + 9 engineered + 9 symbolic = 30 features.
-    Pipeline: raw → FuzzyGrader → FeatureEngineer → SymbolicPipeline → XGBoost.
+    Model C: 12 fuzzy + 8 engineered + 9 symbolic = 29 features.
+    Pipeline: raw -> FuzzyGrader -> FeatureEngineer -> SymbolicPipeline -> XGBoost.
     """
     grader = FuzzyGrader()
     X_fuzzy = grader.grade(X_clinical).reset_index(drop=True)
@@ -26,20 +25,22 @@ def run_model_c(X_clinical: pd.DataFrame, y: pd.Series, rules_dir: str = "rules"
 
     X_combined = pd.concat([X_fuzzy, X_engineered, X_symbolic], axis=1)
 
-    results = _cross_validate_c(X_combined, y, label="Model C (12 fuzzy + 9 engineered + 9 symbolic)")
+    results = _cross_validate_c(X_combined, y, label="Model C (12 fuzzy + 8 engineered + 9 symbolic)")
     results["X_combined"] = X_combined
     return results
 
 
 def _cross_validate_c(X: pd.DataFrame, y: pd.Series, label: str) -> dict:
-    """Stratified 10-fold CV using regularised params specific to Model C."""
+    """Stratified 10-fold CV with regularised XGBoost params for Model C."""
     cv = StratifiedKFold(n_splits=N_SPLITS, shuffle=True, random_state=RANDOM_STATE)
     accuracies, macro_f1s = [], []
     all_y_true, all_y_pred = [], []
 
     for train_idx, val_idx in cv.split(X, y):
-        X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
-        y_train, y_val = y.iloc[train_idx], y.iloc[val_idx]
+        X_train = X.iloc[train_idx]
+        y_train = y.iloc[train_idx]
+        X_val = X.iloc[val_idx]
+        y_val = y.iloc[val_idx]
 
         model = XGBClassifier(**get_xgb_params_c())
         model.fit(X_train, y_train, verbose=False)
@@ -62,4 +63,6 @@ def _cross_validate_c(X: pd.DataFrame, y: pd.Series, label: str) -> dict:
         "per_class_f1": {DISEASES[i]: round(float(per_class_f1[i]), 4)
                          for i in range(len(DISEASES))},
         "confusion_matrix": cm,
+        "y_true_cv": all_y_true,
+        "y_pred_cv": all_y_pred,
     }

@@ -74,4 +74,6 @@ def cross_validate_model(X: pd.DataFrame, y: pd.Series, label: str) -> dict:
         "per_class_f1": {DISEASES[i]: round(float(per_class_f1[i]), 4)
                          for i in range(len(DISEASES))},
         "confusion_matrix": cm,
+        "y_true_cv": all_y_true,
+        "y_pred_cv": all_y_pred,
     }

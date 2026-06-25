@@ -63,13 +63,13 @@ def test_pso_triad_zero_when_no_family_history(engineer, psoriasis_fuzzy):
     assert result["pso_triad"] == pytest.approx(0.0)
 
 
-def test_young_adult_flag(engineer, zero_patient):
-    young = zero_patient.copy()
-    young["age"] = 0.30   # 24 years
+def test_older_patient_flag(engineer, zero_patient):
     old = zero_patient.copy()
-    old["age"] = 0.70     # 56 years
-    assert engineer.engineer_series(young)["young_adult"] == 1.0
-    assert engineer.engineer_series(old)["young_adult"] == 0.0
+    old["age"] = 0.70    # 56 years — PRP adult type / late psoriasis
+    young = zero_patient.copy()
+    young["age"] = 0.30  # 24 years
+    assert engineer.engineer_series(old)["older_patient"] == 1.0
+    assert engineer.engineer_series(young)["older_patient"] == 0.0
 
 
 def test_no_specific_morphology_all_zero(engineer, zero_patient):

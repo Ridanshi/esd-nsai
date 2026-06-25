@@ -1,23 +1,20 @@
 import numpy as np
 import pandas as pd
-from scipy import stats
-from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import accuracy_score, f1_score
-from xgboost import XGBClassifier
-from src.models.base import get_xgb_params, DISEASES, RANDOM_STATE
+from scipy.stats import chi2
+from src.models.base import DISEASES
 
 
 def print_comparison_table(results_a: dict, results_b: dict, results_c: dict) -> None:
-    header = f"{'Model':<40} {'Accuracy':>16} {'Macro F1':>16}"
-    print("\n" + "=" * 72)
+    header = f"{'Model':<46} {'Accuracy':>16} {'Macro F1':>16}"
+    print("\n" + "=" * 78)
     print(header)
-    print("-" * 72)
+    print("-" * 78)
     for res in [results_a, results_b, results_c]:
         label = res["label"]
         acc = f"{res['accuracy_mean']:.4f} +/- {res['accuracy_std']:.4f}"
         f1 = f"{res['macro_f1_mean']:.4f} +/- {res['macro_f1_std']:.4f}"
-        print(f"{label:<40} {acc:>16} {f1:>16}")
-    print("=" * 72)
+        print(f"{label:<46} {acc:>16} {f1:>16}")
+    print("=" * 78)
 
     print("\nPer-class F1 scores:")
     print(f"{'Disease':<35} {'Model A':>10} {'Model B':>10} {'Model C':>10}")
@@ -29,41 +26,57 @@ def print_comparison_table(results_a: dict, results_b: dict, results_c: dict) ->
         print(f"{disease:<35} {fa:>10.4f} {fb:>10.4f} {fc:>10.4f}")
 
 
-def run_statistical_test(
-    X_b: pd.DataFrame,
-    X_c: pd.DataFrame,
-    y: pd.Series,
-) -> dict:
+def run_mcnemar_test(res_b: dict, res_c: dict) -> dict:
     """
-    5x2 paired cross-validation t-test comparing Model B vs Model C.
-    Method: Dietterich (1998) — standard for comparing two classifiers on small datasets.
+    McNemar's test comparing Model B vs Model C on per-sample 10-fold CV predictions.
+    More appropriate than 5x2 t-test for small datasets (N=366): operates at the
+    prediction level rather than the fold level, so training-set size does not bias it.
+
+    Contingency table:
+        a = both correct   b = B correct, C wrong
+        c = B wrong, C correct   d = both wrong
+    Test statistic: chi2 = (|b - c| - 1)^2 / (b + c)  [with Yates continuity correction]
     """
-    differences = []
-    for i in range(5):
-        cv = StratifiedKFold(n_splits=2, shuffle=True, random_state=RANDOM_STATE + i)
-        fold_diffs = []
-        for train_idx, val_idx in cv.split(X_b, y):
-            clf_b = XGBClassifier(**get_xgb_params())
-            clf_b.fit(X_b.iloc[train_idx], y.iloc[train_idx], verbose=False)
-            acc_b = accuracy_score(y.iloc[val_idx], clf_b.predict(X_b.iloc[val_idx]))
+    y_true = np.array(res_b["y_true_cv"])
+    y_pred_b = np.array(res_b["y_pred_cv"])
+    y_pred_c = np.array(res_c["y_pred_cv"])
 
-            clf_c = XGBClassifier(**get_xgb_params())
-            clf_c.fit(X_c.iloc[train_idx], y.iloc[train_idx], verbose=False)
-            acc_c = accuracy_score(y.iloc[val_idx], clf_c.predict(X_c.iloc[val_idx]))
+    b_correct = y_pred_b == y_true
+    c_correct = y_pred_c == y_true
 
-            fold_diffs.append(acc_c - acc_b)
-        differences.extend(fold_diffs)
+    a = int(np.sum(b_correct & c_correct))
+    b = int(np.sum(b_correct & ~c_correct))
+    c = int(np.sum(~b_correct & c_correct))
+    d = int(np.sum(~b_correct & ~c_correct))
 
-    t_stat, p_value = stats.ttest_1samp(differences, 0.0)
+    if b + c == 0:
+        return {
+            "a": a, "b": b, "c": c, "d": d,
+            "chi2_stat": 0.0, "p_value": 1.0,
+            "significant": False,
+            "c_wins": 0, "b_wins": 0,
+            "interpretation": "Models produce identical predictions — no test possible.",
+        }
+
+    chi2_stat = (abs(b - c) - 1) ** 2 / (b + c)
+    p_value = float(1 - chi2.cdf(chi2_stat, df=1))
+
     return {
-        "t_stat": round(float(t_stat), 4),
-        "p_value": round(float(p_value), 4),
-        "significant": float(p_value) < 0.05,
-        "mean_improvement": round(float(np.mean(differences)), 4),
+        "a": a,
+        "b": b,
+        "c": c,
+        "d": d,
+        "chi2_stat": round(chi2_stat, 4),
+        "p_value": round(p_value, 4),
+        "significant": p_value < 0.05,
+        "c_wins": c,
+        "b_wins": b,
         "interpretation": (
-            "Model C significantly better than B (p < 0.05)"
-            if float(p_value) < 0.05
-            else "No significant difference between B and C (p >= 0.05)"
+            f"Model C significantly better than B (p={p_value:.4f} < 0.05): "
+            f"C correct on {c} cases B missed; B correct on {b} cases C missed."
+            if p_value < 0.05
+            else f"No significant difference (p={p_value:.4f}): "
+                 f"C correct on {c} cases B missed; B correct on {b} cases C missed."
         ),
     }
 

@@ -20,8 +20,7 @@ env/
 *.png
 *.pdf
 
-# Session and internal planning docs
-session.md
+# Internal planning docs
 docs/superpowers/
 
 # OS

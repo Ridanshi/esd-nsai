@@ -4,26 +4,25 @@ from scipy.stats import chi2
 from src.models.base import DISEASES
 
 
-def print_comparison_table(results_a: dict, results_b: dict, results_c: dict) -> None:
+def print_comparison_table(*all_results: dict) -> None:
     header = f"{'Model':<46} {'Accuracy':>16} {'Macro F1':>16}"
-    print("\n" + "=" * 78)
+    print("\n" + "=" * 82)
     print(header)
-    print("-" * 78)
-    for res in [results_a, results_b, results_c]:
+    print("-" * 82)
+    for res in all_results:
         label = res["label"]
         acc = f"{res['accuracy_mean']:.4f} +/- {res['accuracy_std']:.4f}"
         f1 = f"{res['macro_f1_mean']:.4f} +/- {res['macro_f1_std']:.4f}"
         print(f"{label:<46} {acc:>16} {f1:>16}")
-    print("=" * 78)
+    print("=" * 82)
 
     print("\nPer-class F1 scores:")
-    print(f"{'Disease':<35} {'Model A':>10} {'Model B':>10} {'Model C':>10}")
-    print("-" * 65)
+    labels = [f"Mdl {chr(65+i)}" for i in range(len(all_results))]
+    print(f"{'Disease':<35} " + " ".join(f"{l:>10}" for l in labels))
+    print("-" * (35 + 11 * len(all_results)))
     for disease in DISEASES:
-        fa = results_a["per_class_f1"].get(disease, 0.0)
-        fb = results_b["per_class_f1"].get(disease, 0.0)
-        fc = results_c["per_class_f1"].get(disease, 0.0)
-        print(f"{disease:<35} {fa:>10.4f} {fb:>10.4f} {fc:>10.4f}")
+        scores = " ".join(f"{r['per_class_f1'].get(disease, 0.0):>10.4f}" for r in all_results)
+        print(f"{disease:<35} {scores}")
 
 
 def run_mcnemar_test(res_b: dict, res_c: dict) -> dict:

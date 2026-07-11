@@ -15,9 +15,12 @@ def train_final_model(X: pd.DataFrame, y: pd.Series) -> XGBClassifier:
     return model
 
 
-def compute_shap_values(model: XGBClassifier, X: pd.DataFrame) -> np.ndarray:
+def compute_shap_values(model: XGBClassifier, X: pd.DataFrame) -> list:
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(X)
+    # Newer SHAP returns (n_samples, n_features, n_classes); normalise to list
+    if isinstance(shap_values, np.ndarray) and shap_values.ndim == 3:
+        shap_values = [shap_values[:, :, i] for i in range(shap_values.shape[2])]
     return shap_values
 
 

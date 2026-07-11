@@ -26,15 +26,15 @@ def get_xgb_params() -> dict:
 
 
 def get_xgb_params_c() -> dict:
-    """Regularised params for Model C (21 features, 366 samples — higher overfit risk)."""
+    """Regularised params for Model C (29 features, 366 samples). Selected by CV sweep."""
     return {
         "n_estimators": 200,
         "max_depth": 3,
-        "learning_rate": 0.1,
-        "subsample": 0.8,
-        "colsample_bytree": 0.6,
-        "min_child_weight": 3,
-        "reg_lambda": 3.0,
+        "learning_rate": 0.05,
+        "subsample": 0.7,
+        "colsample_bytree": 0.4,
+        "min_child_weight": 5,
+        "reg_lambda": 10.0,
         "eval_metric": "mlogloss",
         "random_state": RANDOM_STATE,
     }

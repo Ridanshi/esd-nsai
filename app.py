@@ -230,11 +230,24 @@ with col2:
             primary_sorted = sorted(primary, key=lambda x: -x["contribution"])
 
             if primary_sorted:
+                # Group by tier — one bullet per tier, deduplicated features
+                from collections import defaultdict
+                tier_groups = defaultdict(lambda: {"features": [], "max_contribution": 0.0})
                 for r in primary_sorted:
-                    icon = TIER_ICON.get(r["tier"], "")
-                    tier = TIER_LABEL.get(r["tier"], r["tier"])
-                    signs = ", ".join(FEATURE_LABELS.get(f, f) for f in r.get("conditions", []))
-                    label = evidence_label(r["contribution"])
+                    t = r["tier"]
+                    for f in r.get("conditions", []):
+                        label = FEATURE_LABELS.get(f, f)
+                        if label not in tier_groups[t]["features"]:
+                            tier_groups[t]["features"].append(label)
+                    if r["contribution"] > tier_groups[t]["max_contribution"]:
+                        tier_groups[t]["max_contribution"] = r["contribution"]
+                for tier_key in ["A", "B", "C"]:
+                    if tier_key not in tier_groups:
+                        continue
+                    icon = TIER_ICON.get(tier_key, "")
+                    tier = TIER_LABEL.get(tier_key, tier_key)
+                    signs = ", ".join(tier_groups[tier_key]["features"])
+                    label = evidence_label(tier_groups[tier_key]["max_contribution"])
                     st.markdown(f"{icon} **{tier} {pred_label}** — *{signs}* ({label})")
             else:
                 st.caption(f"No specific expert rules fired for {pred_label} — diagnosis driven by statistical pattern.")

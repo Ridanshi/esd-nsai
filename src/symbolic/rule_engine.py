@@ -67,7 +67,7 @@ class RuleEngine:
         return scores
 
     def get_fired_rules(self, patient: pd.Series) -> list[dict]:
-        """Returns metadata for all rules that fired (strength > 0)."""
+        """Returns metadata for all rules that fired (strength > 0), including conditions."""
         fired = []
         for rule in self._rules:
             strength = self._fire_rule(rule, patient)
@@ -78,5 +78,6 @@ class RuleEngine:
                     "tier": rule.get("tier"),
                     "firing_strength": round(strength, 4),
                     "contribution": round(strength * rule["weight"], 4),
+                    "conditions": [c["feature"] for c in rule.get("conditions", [])],
                 })
         return fired

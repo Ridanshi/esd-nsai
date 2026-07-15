@@ -193,35 +193,55 @@ with col2:
 
         # Reasoning trace — why this diagnosis
         st.divider()
-        st.markdown("**Why this diagnosis? (Fired expert rules)**")
+        st.markdown("**Why this diagnosis? (Clinical reasoning)**")
         fired = result.get("fired_rules", [])
-        if fired:
-            TIER_LABEL = {"A": "Pathognomonic", "B": "Supportive", "C": "Auxiliary", "D": "Discriminating (penalty)"}
-            TIER_ICON  = {"A": "🔴", "B": "🟠", "C": "🟡", "D": "⬇️"}
 
-            # Group by disease
+        FEATURE_LABELS = {
+            "erythema": "skin redness (erythema)",
+            "scaling": "scaling",
+            "definite_borders": "well-defined lesion borders",
+            "itching": "itching (pruritus)",
+            "koebner_phenomenon": "Koebner phenomenon",
+            "polygonal_papules": "polygonal papules",
+            "follicular_papules": "follicular papules",
+            "oral_mucosal_involvement": "oral mucosal involvement",
+            "knee_elbow_involvement": "knee/elbow involvement",
+            "scalp_involvement": "scalp involvement",
+            "family_history": "positive family history",
+            "age": "patient age",
+        }
+        TIER_LABEL = {"A": "Pathognomonic", "B": "Supportive", "C": "Auxiliary", "D": "Penalising"}
+        TIER_ICON  = {"A": "🔴", "B": "🟠", "C": "🟡", "D": "⬇️"}
+
+        if fired:
             supporting = [r for r in fired if r["tier"] != "D"]
             penalising = [r for r in fired if r["tier"] == "D"]
 
             if supporting:
-                st.markdown("*Rules that **support** a diagnosis:*")
+                st.markdown("*Signs that **support** a diagnosis:*")
                 for r in sorted(supporting, key=lambda x: -x["contribution"]):
                     icon = TIER_ICON.get(r["tier"], "")
                     tier = TIER_LABEL.get(r["tier"], r["tier"])
                     disease = DISEASE_LABELS.get(r["disease"], r["disease"])
+                    signs = ", ".join(
+                        FEATURE_LABELS.get(f, f) for f in r.get("conditions", [])
+                    )
                     st.markdown(
-                        f"{icon} **{r['id']}** — {disease} &nbsp;·&nbsp; "
-                        f"Tier {r['tier']} ({tier}) &nbsp;·&nbsp; "
-                        f"Contribution: `{r['contribution']:.3f}`"
+                        f"{icon} **{tier} evidence for {disease}** — "
+                        f"triggered by: *{signs}* &nbsp;·&nbsp; "
+                        f"strength `{r['contribution']:.2f}`"
                     )
 
             if penalising:
-                st.markdown("*Rules that **penalise** a diagnosis (competitor sign present):*")
-                for r in sorted(penalising, key=lambda x: -x["contribution"]):
+                st.markdown("*Signs that **rule out** other diagnoses:*")
+                for r in sorted(penalising, key=lambda x: -x["firing_strength"]):
                     disease = DISEASE_LABELS.get(r["disease"], r["disease"])
+                    signs = ", ".join(
+                        FEATURE_LABELS.get(f, f) for f in r.get("conditions", [])
+                    )
                     st.markdown(
-                        f"⬇️ **{r['id']}** — penalises {disease} &nbsp;·&nbsp; "
-                        f"Strength: `{r['firing_strength']:.3f}`"
+                        f"⬇️ **{disease} less likely** — "
+                        f"*{signs}* not consistent with this disease"
                     )
         else:
             st.caption("No expert rules fired — prediction driven entirely by statistical classifier.")

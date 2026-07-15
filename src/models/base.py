@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from xgboost import XGBClassifier
+from catboost import CatBoostClassifier
 
 N_SPLITS = 10
 RANDOM_STATE = 42
@@ -26,7 +27,7 @@ def get_xgb_params() -> dict:
 
 
 def get_xgb_params_c() -> dict:
-    """Regularised params for Model C (29 features, 366 samples). Selected by CV sweep."""
+    """Regularised params for Model C — kept for reference/ablation."""
     return {
         "n_estimators": 200,
         "max_depth": 3,
@@ -37,6 +38,24 @@ def get_xgb_params_c() -> dict:
         "reg_lambda": 10.0,
         "eval_metric": "mlogloss",
         "random_state": RANDOM_STATE,
+    }
+
+
+def get_catboost_params_c() -> dict:
+    """CatBoost params for Model C (29 features, 366 samples). Ordered boosting reduces overfitting vs XGBoost."""
+    return {
+        "iterations": 300,
+        "depth": 4,
+        "learning_rate": 0.05,
+        "l2_leaf_reg": 10.0,
+        "bootstrap_type": "Bernoulli",
+        "subsample": 0.7,
+        "random_seed": RANDOM_STATE,
+        "verbose": 0,
+        "loss_function": "MultiClass",
+        "eval_metric": "Accuracy",
+        "od_type": "Iter",
+        "od_wait": 30,
     }
 
 

@@ -210,7 +210,7 @@ with col2:
             "family_history": "positive family history",
             "age": "patient age",
         }
-        TIER_LABEL = {"A": "Pathognomonic", "B": "Supportive", "C": "Auxiliary", "D": "Penalising"}
+        TIER_LABEL = {"A": "Highly specific sign for", "B": "Commonly seen in", "C": "Occasionally seen in", "D": "Argues against"}
         TIER_ICON  = {"A": "🔴", "B": "🟠", "C": "🟡", "D": "⬇️"}
 
         if fired:
@@ -236,8 +236,7 @@ with col2:
                     )
                     label = evidence_label(r["contribution"])
                     st.markdown(
-                        f"{icon} **{label} for {disease}** ({tier}) — "
-                        f"triggered by: *{signs}*"
+                        f"{icon} **{tier} {disease}** — *{signs}* ({label})"
                     )
 
             if penalising:
@@ -248,8 +247,7 @@ with col2:
                         FEATURE_LABELS.get(f, f) for f in r.get("conditions", [])
                     )
                     st.markdown(
-                        f"⬇️ **{disease} less likely** — "
-                        f"*{signs}* not consistent with this disease"
+                        f"⬇️ **Argues against {disease}** — *{signs}* not expected in this disease"
                     )
         else:
             st.caption("No expert rules fired — prediction driven entirely by statistical classifier.")

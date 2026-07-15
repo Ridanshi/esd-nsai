@@ -217,6 +217,14 @@ with col2:
             supporting = [r for r in fired if r["tier"] != "D"]
             penalising = [r for r in fired if r["tier"] == "D"]
 
+            def evidence_label(contribution):
+                if contribution >= 0.80:
+                    return "Strong evidence"
+                elif contribution >= 0.50:
+                    return "Moderate evidence"
+                else:
+                    return "Weak evidence"
+
             if supporting:
                 st.markdown("*Signs that **support** a diagnosis:*")
                 for r in sorted(supporting, key=lambda x: -x["contribution"]):
@@ -226,10 +234,10 @@ with col2:
                     signs = ", ".join(
                         FEATURE_LABELS.get(f, f) for f in r.get("conditions", [])
                     )
+                    label = evidence_label(r["contribution"])
                     st.markdown(
-                        f"{icon} **{tier} evidence for {disease}** — "
-                        f"triggered by: *{signs}* &nbsp;·&nbsp; "
-                        f"strength `{r['contribution']:.2f}`"
+                        f"{icon} **{label} for {disease}** ({tier}) — "
+                        f"triggered by: *{signs}*"
                     )
 
             if penalising:

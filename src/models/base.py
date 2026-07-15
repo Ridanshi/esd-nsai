@@ -42,14 +42,14 @@ def get_xgb_params_c() -> dict:
 
 
 def get_catboost_params_c() -> dict:
-    """CatBoost params for Model C (29 features, 366 samples). Ordered boosting reduces overfitting vs XGBoost."""
+    """CatBoost params for Model C. Selected by 108-combo CV sweep; best val acc with minimal train-val gap."""
     return {
-        "iterations": 300,
-        "depth": 4,
+        "iterations": 200,
+        "depth": 3,
         "learning_rate": 0.05,
-        "l2_leaf_reg": 10.0,
+        "l2_leaf_reg": 5.0,
         "bootstrap_type": "Bernoulli",
-        "subsample": 0.7,
+        "subsample": 0.8,
         "random_seed": RANDOM_STATE,
         "verbose": 0,
         "loss_function": "MultiClass",

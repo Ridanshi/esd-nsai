@@ -213,42 +213,52 @@ with col2:
         TIER_LABEL = {"A": "Highly specific sign for", "B": "Commonly seen in", "C": "Occasionally seen in", "D": "Argues against"}
         TIER_ICON  = {"A": "🔴", "B": "🟠", "C": "🟡", "D": "⬇️"}
 
+        def evidence_label(contribution):
+            if contribution >= 0.80:
+                return "Strong evidence"
+            elif contribution >= 0.50:
+                return "Moderate evidence"
+            else:
+                return "Weak evidence"
+
         if fired:
-            supporting = [r for r in fired if r["tier"] != "D"]
-            penalising = [r for r in fired if r["tier"] == "D"]
+            pred_disease = result["disease"]
+            pred_label = DISEASE_LABELS.get(pred_disease, pred_disease)
 
-            def evidence_label(contribution):
-                if contribution >= 0.80:
-                    return "Strong evidence"
-                elif contribution >= 0.50:
-                    return "Moderate evidence"
-                else:
-                    return "Weak evidence"
+            # Primary: rules for the predicted disease only
+            primary = [r for r in fired if r["disease"] == pred_disease and r["tier"] != "D"]
+            primary_sorted = sorted(primary, key=lambda x: -x["contribution"])
 
-            if supporting:
-                st.markdown("*Signs that **support** a diagnosis:*")
-                for r in sorted(supporting, key=lambda x: -x["contribution"]):
+            if primary_sorted:
+                for r in primary_sorted:
                     icon = TIER_ICON.get(r["tier"], "")
                     tier = TIER_LABEL.get(r["tier"], r["tier"])
-                    disease = DISEASE_LABELS.get(r["disease"], r["disease"])
-                    signs = ", ".join(
-                        FEATURE_LABELS.get(f, f) for f in r.get("conditions", [])
-                    )
+                    signs = ", ".join(FEATURE_LABELS.get(f, f) for f in r.get("conditions", []))
                     label = evidence_label(r["contribution"])
-                    st.markdown(
-                        f"{icon} **{tier} {disease}** — *{signs}* ({label})"
-                    )
+                    st.markdown(f"{icon} **{tier} {pred_label}** — *{signs}* ({label})")
+            else:
+                st.caption(f"No specific expert rules fired for {pred_label} — diagnosis driven by statistical pattern.")
 
+            # Penalising rules
+            penalising = [r for r in fired if r["tier"] == "D"]
             if penalising:
-                st.markdown("*Signs that **rule out** other diagnoses:*")
+                st.markdown("")
                 for r in sorted(penalising, key=lambda x: -x["firing_strength"]):
                     disease = DISEASE_LABELS.get(r["disease"], r["disease"])
-                    signs = ", ".join(
-                        FEATURE_LABELS.get(f, f) for f in r.get("conditions", [])
-                    )
-                    st.markdown(
-                        f"⬇️ **Argues against {disease}** — *{signs}* not expected in this disease"
-                    )
+                    signs = ", ".join(FEATURE_LABELS.get(f, f) for f in r.get("conditions", []))
+                    st.markdown(f"⬇️ **Argues against {disease}** — *{signs}* not expected in this disease")
+
+            # Collapsed: all other disease rules
+            other = [r for r in fired if r["disease"] != pred_disease and r["tier"] != "D"]
+            if other:
+                with st.expander("Full evidence trail (all diseases)"):
+                    for r in sorted(other, key=lambda x: (-x["contribution"], x["disease"])):
+                        icon = TIER_ICON.get(r["tier"], "")
+                        tier = TIER_LABEL.get(r["tier"], r["tier"])
+                        disease = DISEASE_LABELS.get(r["disease"], r["disease"])
+                        signs = ", ".join(FEATURE_LABELS.get(f, f) for f in r.get("conditions", []))
+                        label = evidence_label(r["contribution"])
+                        st.markdown(f"{icon} **{tier} {disease}** — *{signs}* ({label})")
         else:
             st.caption("No expert rules fired — prediction driven entirely by statistical classifier.")
 

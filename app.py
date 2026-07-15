@@ -267,16 +267,26 @@ with col2:
                 for sign, diseases in sign_to_diseases.items():
                     st.markdown(f"⬇️ **{sign}** — not typical for {', '.join(diseases)}")
 
-            # Collapsed: all other disease rules
+            # Collapsed: all other disease rules, grouped by (disease, tier)
             other = [r for r in fired if r["disease"] != pred_disease and r["tier"] != "D"]
             if other:
                 with st.expander("Full evidence trail (all diseases)"):
-                    for r in sorted(other, key=lambda x: (-x["contribution"], x["disease"])):
-                        icon = TIER_ICON.get(r["tier"], "")
-                        tier = TIER_LABEL.get(r["tier"], r["tier"])
-                        disease = DISEASE_LABELS.get(r["disease"], r["disease"])
-                        signs = ", ".join(FEATURE_LABELS.get(f, f) for f in r.get("conditions", []))
-                        label = evidence_label(r["contribution"])
+                    dt_groups = {}
+                    for r in other:
+                        key = (DISEASE_LABELS.get(r["disease"], r["disease"]), r["tier"])
+                        if key not in dt_groups:
+                            dt_groups[key] = {"features": [], "max_contribution": 0.0}
+                        for f in r.get("conditions", []):
+                            lbl = FEATURE_LABELS.get(f, f)
+                            if lbl not in dt_groups[key]["features"]:
+                                dt_groups[key]["features"].append(lbl)
+                        if r["contribution"] > dt_groups[key]["max_contribution"]:
+                            dt_groups[key]["max_contribution"] = r["contribution"]
+                    for (disease, tier_key), g in sorted(dt_groups.items(), key=lambda x: (-x[1]["max_contribution"], x[0][0])):
+                        icon = TIER_ICON.get(tier_key, "")
+                        tier = TIER_LABEL.get(tier_key, tier_key)
+                        signs = ", ".join(g["features"])
+                        label = evidence_label(g["max_contribution"])
                         st.markdown(f"{icon} **{tier} {disease}** — *{signs}* ({label})")
         else:
             st.caption("No expert rules fired — prediction driven entirely by statistical classifier.")

@@ -13,6 +13,7 @@ from src.data.loader import load_dataset
 from src.grading.fuzzy_grader import FuzzyGrader
 from src.grading.feature_engineer import FeatureEngineer
 from src.symbolic.pipeline import SymbolicPipeline
+from src.symbolic.rule_engine import RuleEngine
 from src.models.base import get_catboost_params_c, DISEASES
 from src.triage.biopsy_triage import BiopsyTriage
 
@@ -52,10 +53,11 @@ def load_model():
 
     model = CatBoostClassifier(**get_catboost_params_c())
     model.fit(X_train, y_train)
-    return model, grader, engineer, pipeline
+    rule_engine = RuleEngine("rules")
+    return model, grader, engineer, pipeline, rule_engine
 
 
-def predict(model, grader, engineer, sym_pipeline, raw_input: dict):
+def predict(model, grader, engineer, sym_pipeline, raw_input: dict, rule_engine=None):
     X_raw = pd.DataFrame([raw_input])
     X_fuzzy = grader.grade(X_raw).reset_index(drop=True)
     X_eng = engineer.engineer(X_fuzzy)
@@ -85,6 +87,11 @@ def predict(model, grader, engineer, sym_pipeline, raw_input: dict):
     fsm_name = fsm_state_names[min(fsm_val, 4)]
     conflict = float(X_sym["conflict_load"].iloc[0]) if "conflict_load" in X_sym.columns else 0.0
 
+    # Fired rules for reasoning trace
+    fired_rules = []
+    if rule_engine is not None:
+        fired_rules = rule_engine.get_fired_rules(X_fuzzy.iloc[0])
+
     return {
         "disease": pred_disease,
         "confidence": confidence,
@@ -93,6 +100,7 @@ def predict(model, grader, engineer, sym_pipeline, raw_input: dict):
         "sym_certainties": sym_certainties,
         "fsm_state": fsm_name,
         "conflict_load": conflict,
+        "fired_rules": fired_rules,
     }
 
 
@@ -102,7 +110,7 @@ st.title("🔬 HSCIS-ESD — Biopsy-Free Differential Diagnosis")
 st.caption("Hybrid Symbolic Clinical Inference System · 88.79% accuracy · McNemar p=0.0176")
 st.divider()
 
-model, grader, engineer, sym_pipeline = load_model()
+model, grader, engineer, sym_pipeline, rule_engine = load_model()
 
 col1, col2 = st.columns([1, 1.2], gap="large")
 
@@ -147,7 +155,7 @@ with col2:
         }
 
         with st.spinner("Analysing..."):
-            result = predict(model, grader, engineer, sym_pipeline, raw)
+            result = predict(model, grader, engineer, sym_pipeline, raw, rule_engine)
 
         # Primary diagnosis
         rec = result["recommendation"]
@@ -182,6 +190,41 @@ with col2:
                 "Certainty": [result["sym_certainties"][d] for d in DISEASES if d in result["sym_certainties"]],
             }).sort_values("Certainty", ascending=False)
             st.bar_chart(cert_df.set_index("Disease"), horizontal=True)
+
+        # Reasoning trace — why this diagnosis
+        st.divider()
+        st.markdown("**Why this diagnosis? (Fired expert rules)**")
+        fired = result.get("fired_rules", [])
+        if fired:
+            TIER_LABEL = {"A": "Pathognomonic", "B": "Supportive", "C": "Auxiliary", "D": "Discriminating (penalty)"}
+            TIER_ICON  = {"A": "🔴", "B": "🟠", "C": "🟡", "D": "⬇️"}
+
+            # Group by disease
+            supporting = [r for r in fired if r["tier"] != "D"]
+            penalising = [r for r in fired if r["tier"] == "D"]
+
+            if supporting:
+                st.markdown("*Rules that **support** a diagnosis:*")
+                for r in sorted(supporting, key=lambda x: -x["contribution"]):
+                    icon = TIER_ICON.get(r["tier"], "")
+                    tier = TIER_LABEL.get(r["tier"], r["tier"])
+                    disease = DISEASE_LABELS.get(r["disease"], r["disease"])
+                    st.markdown(
+                        f"{icon} **{r['id']}** — {disease} &nbsp;·&nbsp; "
+                        f"Tier {r['tier']} ({tier}) &nbsp;·&nbsp; "
+                        f"Contribution: `{r['contribution']:.3f}`"
+                    )
+
+            if penalising:
+                st.markdown("*Rules that **penalise** a diagnosis (competitor sign present):*")
+                for r in sorted(penalising, key=lambda x: -x["contribution"]):
+                    disease = DISEASE_LABELS.get(r["disease"], r["disease"])
+                    st.markdown(
+                        f"⬇️ **{r['id']}** — penalises {disease} &nbsp;·&nbsp; "
+                        f"Strength: `{r['firing_strength']:.3f}`"
+                    )
+        else:
+            st.caption("No expert rules fired — prediction driven entirely by statistical classifier.")
 
     else:
         st.info("Set clinical feature values on the left, then click **Run Diagnosis**.")

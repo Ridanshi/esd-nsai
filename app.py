@@ -252,14 +252,20 @@ with col2:
             else:
                 st.caption(f"No specific expert rules fired for {pred_label} — diagnosis driven by statistical pattern.")
 
-            # Penalising rules
+            # Penalising rules — group by sign, list diseases it excludes
             penalising = [r for r in fired if r["tier"] == "D"]
             if penalising:
                 st.markdown("")
-                for r in sorted(penalising, key=lambda x: -x["firing_strength"]):
-                    disease = DISEASE_LABELS.get(r["disease"], r["disease"])
+                sign_to_diseases = {}
+                for r in penalising:
                     signs = ", ".join(FEATURE_LABELS.get(f, f) for f in r.get("conditions", []))
-                    st.markdown(f"⬇️ **Argues against {disease}** — *{signs}* not expected in this disease")
+                    disease = DISEASE_LABELS.get(r["disease"], r["disease"])
+                    if signs not in sign_to_diseases:
+                        sign_to_diseases[signs] = []
+                    if disease not in sign_to_diseases[signs]:
+                        sign_to_diseases[signs].append(disease)
+                for sign, diseases in sign_to_diseases.items():
+                    st.markdown(f"⬇️ **{sign}** — not typical for {', '.join(diseases)}")
 
             # Collapsed: all other disease rules
             other = [r for r in fired if r["disease"] != pred_disease and r["tier"] != "D"]

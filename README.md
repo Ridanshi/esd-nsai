@@ -38,7 +38,7 @@ This system uses **only the 12 clinical features** observable without biopsy.
         ↓
   9 Symbolic Outputs
         ↓
-[XGBoost Classifier]   29 total features (12 fuzzy + 8 engineered + 9 symbolic)
+[CatBoost Classifier]  29 total features (12 fuzzy + 8 engineered + 9 symbolic)
         ↓
 [BiopsyTriage]         SAFE_BIOPSY_FREE / UNCERTAIN / BIOPSY_ADVISED
 ```
@@ -76,24 +76,24 @@ This system uses **only the 12 clinical features** observable without biopsy.
 |---|---|---|
 | A (biopsy-assisted) | 96.71% ± 1.66% | 0.9630 ± 0.0180 |
 | B (clinical baseline) | 84.95% ± 6.01% | 0.8424 ± 0.0590 |
-| **C (HSCIS-ESD)** | **86.61% ± 3.55%** | **0.8619 ± 0.0329** |
+| **C (HSCIS-ESD)** | **88.79% ± 3.34%** | **0.8850 ± 0.0336** |
 
 ### Per-Class F1
 
 | Disease | Model A | Model B | Model C |
 |---|---|---|---|
-| psoriasis | 1.0000 | 0.9364 | 0.9333 |
-| seborrheic_dermatitis | 0.9091 | 0.6667 | **0.7419** |
-| lichen_planus | 0.9930 | 0.9859 | 0.9640 |
-| pityriasis_rosea | 0.8889 | 0.7619 | **0.8041** |
-| chronic_dermatitis | 0.9905 | 0.7400 | **0.7547** |
-| pityriasis_rubra_pilaris | 1.0000 | 0.9744 | 0.9756 |
+| psoriasis | 1.0000 | 0.9364 | **0.9459** |
+| seborrheic_dermatitis | 0.9091 | 0.6667 | **0.7619** |
+| lichen_planus | 0.9930 | 0.9859 | **0.9787** |
+| pityriasis_rosea | 0.8889 | 0.7619 | **0.8511** |
+| chronic_dermatitis | 0.9905 | 0.7400 | **0.7963** |
+| pityriasis_rubra_pilaris | 1.0000 | 0.9744 | **0.9756** |
 
 ---
 
 ## Ablation Study
 
-Marginal contribution of each feature layer (same XGBoost params, same 10-fold CV):
+Marginal contribution of each feature layer (controlled comparison using XGBoost; final system uses CatBoost):
 
 | Configuration | Features | Accuracy | Std | Macro F1 |
 |---|---|---|---|---|
@@ -102,7 +102,7 @@ Marginal contribution of each feature layer (same XGBoost params, same 10-fold C
 | Fuzzy + Symbolic | 21 | 85.53% | **±2.66%** | 0.8495 |
 | **Fuzzy + Eng + Sym (Model C)** | **29** | **86.61%** | **±3.55%** | **0.8619** |
 
-**Key finding:** The symbolic layer's primary contribution is **diagnostic stability**, not raw accuracy. Adding symbolic features alone reduces prediction variance by **45%** (±4.86% → ±2.66%) — indicating the expert rules encode genuine clinical structure. Combined with engineered features, the full system achieves best accuracy and best F1.
+**Key finding:** The symbolic layer's primary contribution is **diagnostic stability**, not raw accuracy. Adding symbolic features alone reduces prediction variance by **45%** (±4.86% → ±2.66%) — indicating the expert rules encode genuine clinical structure. The final system (CatBoost + tuned hyperparameters) achieves **88.79% ±3.34%**, with McNemar-confirmed superiority over the clinical baseline (p=0.0176).
 
 ---
 

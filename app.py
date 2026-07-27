@@ -4,6 +4,7 @@ Streamlit inference interface. Trains on full UCI dataset at startup,
 then predicts in real-time from 12 observable clinical features.
 """
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
 import altair as alt
@@ -20,7 +21,6 @@ from src.triage.biopsy_triage import BiopsyTriage
 
 st.set_page_config(
     page_title="HSCIS-ESD",
-    page_icon="🔬",
     layout="wide",
 )
 
@@ -33,9 +33,10 @@ st.markdown("""
 
 html, body, .stApp, [data-testid="stAppViewContainer"] {
     font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
-    background-color: #070c14 !important;
-    color: #e2e8f0 !important;
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
 }
+html, body { overflow-x: hidden !important; }
 
 /* ── Hide Streamlit chrome ─────────────────────────── */
 #MainMenu, footer,
@@ -44,90 +45,130 @@ html, body, .stApp, [data-testid="stAppViewContainer"] {
 [data-testid="stDecoration"],
 [data-testid="stStatusWidget"] { display: none !important; }
 
+/* ── Suppress rerun dim-fade ────────────────────────── */
+[data-stale="true"] { opacity: 1 !important; transition: none !important; }
+
 /* ── Layout ────────────────────────────────────────── */
-.main .block-container {
+[data-testid="stMainBlockContainer"] {
     padding: 0 2.5rem 3rem !important;
-    max-width: 1160px !important;
+    max-width: 1600px !important;
+    margin: 0 auto !important;
+}
+[data-testid="stAppViewContainer"], [data-testid="stAppViewBlockContainer"] {
+    padding-top: 0 !important;
+}
+[data-testid="stElementContainer"]:has(> [data-testid="stMarkdown"] > [data-testid="stMarkdownContainer"] > style) {
+    display: none !important;
 }
 
 /* ── Scrollbar ─────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: rgba(15,23,42,0.14); border-radius: 3px; }
 
 /* ── Paragraph / caption ───────────────────────────── */
 p, span, div, label {
     font-family: 'Inter', system-ui, sans-serif !important;
 }
+[data-testid="stIconMaterial"] {
+    font-family: 'Material Symbols Rounded' !important;
+}
 [data-testid="stCaptionContainer"] p {
     font-size: 0.72rem !important;
-    color: #334155 !important;
+    color: #94a3b8 !important;
+    text-align: center !important;
 }
-hr { border-color: rgba(255,255,255,0.05) !important; margin: 1rem 0 !important; }
+hr { border-color: #e2e8f0 !important; margin: 1rem 0 !important; }
 
 /* ── Form labels ───────────────────────────────────── */
 [data-testid="stSlider"] label p,
 [data-testid="stRadio"] > label p,
 [data-testid="stNumberInput"] label p {
-    font-size: 0.79rem !important;
+    font-size: 0.85rem !important;
     font-weight: 500 !important;
-    color: #64748b !important;
+    color: #1e293b !important;
     letter-spacing: 0 !important;
 }
 
 /* ── Slider ────────────────────────────────────────── */
-[data-testid="stSlider"] { padding-bottom: 6px !important; }
-[data-testid="stSlider"] > div > div > div > div {
+[data-testid="stSlider"] { padding-bottom: 0 !important; }
+[data-testid="stSlider"] [data-baseweb="slider"] > div > div {
+    background: #e2e8f0 !important;
+    height: 4px !important;
+}
+[data-testid="stSlider"] [role="slider"] {
     background: #2563eb !important;
+    width: 15px !important;
+    height: 15px !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 0 0 1px rgba(37,99,235,0.25), 0 1px 3px rgba(15,23,42,0.15) !important;
 }
-[data-testid="stSlider"] > div > div > div > div > div {
-    background: #3b82f6 !important;
-    border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.18) !important;
+[data-testid="stSlider"] [data-testid="stSliderThumbValue"],
+[data-testid="stSlider"] [data-testid="stSliderTickBar"] {
+    display: none !important;
 }
+.tick-row { display: flex; justify-content: space-between; margin: -10px 0 14px; }
+.tick-off { font-size: 0.76rem; font-weight: 600; color: #94a3b8; }
+.tick-on  { font-size: 0.76rem; font-weight: 800; color: #2563eb; }
 
 /* ── Radio ─────────────────────────────────────────── */
-[data-testid="stRadio"] > div {
+[data-testid="stRadio"] > div[role="radiogroup"] {
     flex-direction: row !important;
     gap: 6px !important;
     flex-wrap: wrap !important;
 }
-[data-testid="stRadio"] > div > label {
-    background: #0a1422 !important;
-    border: 1px solid rgba(255,255,255,0.07) !important;
+[data-testid="stRadio"] label[data-baseweb="radio"] {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
     border-radius: 6px !important;
     padding: 4px 12px !important;
-    font-size: 0.77rem !important;
-    font-weight: 500 !important;
-    color: #64748b !important;
+    margin: 0 !important;
     cursor: pointer !important;
     transition: border-color 0.12s, color 0.12s, background 0.12s !important;
 }
-[data-testid="stRadio"] > div > label:has(input:checked) {
-    background: rgba(37,99,235,0.10) !important;
-    border-color: rgba(37,99,235,0.35) !important;
-    color: #93c5fd !important;
+[data-testid="stRadio"] label[data-baseweb="radio"] > div:first-of-type,
+[data-testid="stRadio"] label[data-baseweb="radio"] input {
+    display: none !important;
+}
+[data-testid="stRadio"] label[data-baseweb="radio"] p {
+    font-size: 0.79rem !important;
+    font-weight: 500 !important;
+    color: #475569 !important;
+}
+[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
+    background: #eff6ff !important;
+    border-color: #2563eb !important;
+}
+[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p {
+    color: #2563eb !important;
 }
 
 /* ── Number input ──────────────────────────────────── */
-[data-testid="stNumberInput"] input {
-    background: #0a1422 !important;
-    border: 1px solid rgba(255,255,255,0.07) !important;
+[data-testid="stNumberInputContainer"] [data-baseweb="input"],
+[data-testid="stNumberInputContainer"] [data-baseweb="base-input"] {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
     border-radius: 7px !important;
-    color: #e2e8f0 !important;
+}
+[data-testid="stNumberInputField"] {
+    background: #ffffff !important;
+    color: #0f172a !important;
     font-size: 0.86rem !important;
     font-family: 'Inter', sans-serif !important;
 }
-[data-testid="stNumberInput"] input:focus {
-    border-color: rgba(37,99,235,0.45) !important;
+[data-testid="stNumberInputContainer"] [data-baseweb="input"]:focus-within {
+    border-color: #2563eb !important;
     box-shadow: 0 0 0 3px rgba(37,99,235,0.10) !important;
-    outline: none !important;
+}
+[data-testid="stNumberInputStepDown"], [data-testid="stNumberInputStepUp"] {
+    background: #ffffff !important;
+    color: #64748b !important;
 }
 
 /* ── Bordered containers ───────────────────────────── */
-[data-testid="stVerticalBlockBorderWrapper"] > div {
-    background: #0b1626 !important;
-    border: 1px solid rgba(255,255,255,0.06) !important;
+[data-testid="stLayoutWrapper"] > [data-testid="stVerticalBlock"] {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
     border-radius: 11px !important;
     padding: 16px 18px !important;
 }
@@ -145,12 +186,12 @@ hr { border-color: rgba(255,255,255,0.05) !important; margin: 1rem 0 !important;
     background: #2563eb !important;
     border: none !important;
     color: #fff !important;
-    padding: 0.65rem 1.5rem !important;
+    padding: 0.7rem 1.5rem !important;
 }
 [data-testid="stButton"] > button[kind="primary"]:hover {
     background: #1d4ed8 !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 8px 24px rgba(37,99,235,0.28) !important;
+    box-shadow: 0 8px 24px rgba(37,99,235,0.22) !important;
 }
 [data-testid="stButton"] > button[kind="primary"]:active {
     transform: translateY(0) !important;
@@ -159,47 +200,36 @@ hr { border-color: rgba(255,255,255,0.05) !important; margin: 1rem 0 !important;
 
 /* ── Metrics ───────────────────────────────────────── */
 [data-testid="metric-container"] {
-    background: #0b1626 !important;
-    border: 1px solid rgba(255,255,255,0.06) !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
     border-radius: 9px !important;
     padding: 13px 16px !important;
+    text-align: center !important;
 }
+[data-testid="stMetricLabel"] { justify-content: center !important; }
 [data-testid="stMetricLabel"] > div {
-    font-size: 0.60rem !important; font-weight: 600 !important;
+    font-size: 0.60rem !important; font-weight: 700 !important;
     text-transform: uppercase !important; letter-spacing: 0.10em !important;
-    color: #334155 !important; font-family: 'Inter', sans-serif !important;
+    color: #94a3b8 !important; font-family: 'Inter', sans-serif !important;
 }
+[data-testid="stMetricValue"] { justify-content: center !important; }
 [data-testid="stMetricValue"] > div {
     font-size: 1.05rem !important; font-weight: 700 !important;
-    color: #e2e8f0 !important; font-family: 'Inter', sans-serif !important;
+    color: #0f172a !important; font-family: 'Inter', sans-serif !important;
     font-variant-numeric: tabular-nums !important;
 }
 [data-testid="stMetricDelta"] { display: none !important; }
 
-/* ── Progress bar ──────────────────────────────────── */
-[data-testid="stProgress"] > div {
-    background: #0f1e32 !important;
-    border-radius: 4px !important;
-    height: 5px !important;
-    overflow: hidden !important;
-}
-[data-testid="stProgress"] > div > div {
-    background: linear-gradient(90deg, #1d4ed8, #60a5fa) !important;
-    border-radius: 4px !important;
-    height: 5px !important;
-}
-[data-testid="stProgress"] p { display: none !important; }
-
 /* ── Expander ──────────────────────────────────────── */
 [data-testid="stExpander"] {
-    background: #0b1626 !important;
-    border: 1px solid rgba(255,255,255,0.05) !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
     border-radius: 8px !important;
     margin-top: 6px !important;
 }
 [data-testid="stExpander"] summary p {
     font-size: 0.79rem !important; font-weight: 500 !important;
-    color: #334155 !important; font-family: 'Inter', sans-serif !important;
+    color: #475569 !important; font-family: 'Inter', sans-serif !important;
 }
 [data-testid="stExpander"] > div > div > div {
     padding: 8px 4px !important;
@@ -208,100 +238,115 @@ hr { border-color: rgba(255,255,255,0.05) !important; margin: 1rem 0 !important;
 /* ── ─────────────── Custom components ────────────── */
 
 .nav {
-    background: rgba(7,12,20,0.96);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
     margin: 0 -2.5rem 28px;
     padding: 16px 2.5rem;
     position: sticky; top: 0; z-index: 999;
     display: flex; align-items: center; justify-content: space-between;
 }
 .nav-left { display: flex; align-items: center; gap: 10px; }
-.nav-title { font-size: 0.93rem; font-weight: 700; color: #e2e8f0; letter-spacing: -0.01em; }
+.nav-dot { width: 7px; height: 7px; border-radius: 2px; background: #2563eb; display: inline-block; }
+.nav-title { font-size: 0.95rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
+.nav-sep { color: #cbd5e1; font-weight: 400; }
 .nav-badge {
-    font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.10em;
-    color: #60a5fa; background: rgba(37,99,235,0.10); border: 1px solid rgba(37,99,235,0.22);
-    padding: 2px 8px; border-radius: 4px;
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.10em;
+    color: #94a3b8;
 }
-.nav-right { display: flex; gap: 32px; }
-.nav-stat { text-align: right; }
-.nav-stat-val { font-size: 0.84rem; font-weight: 700; color: #e2e8f0; font-variant-numeric: tabular-nums; }
-.nav-stat-lbl { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.09em; color: #334155; }
 
 .form-sec {
-    font-size: 0.60rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.13em; color: #334155; margin: 20px 0 8px;
+    font-size: 0.66rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: #94a3b8; margin: 20px 0 8px;
 }
 
 .dx-card {
-    background: #0a1828;
-    border: 1px solid rgba(37,99,235,0.20);
-    border-top: 2px solid #2563eb;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: 12px; padding: 22px 24px; margin-bottom: 14px;
+    display: flex; align-items: flex-start; justify-content: space-between;
 }
 .dx-eye {
-    font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.15em; color: #2563eb; margin-bottom: 7px;
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.13em; color: #94a3b8; margin-bottom: 7px;
 }
 .dx-name {
-    font-size: 1.75rem; font-weight: 800; color: #f1f5f9;
-    letter-spacing: -0.025em; line-height: 1.12; margin-bottom: 4px;
+    font-size: 1.9rem; font-weight: 800; color: #0f172a;
+    letter-spacing: -0.02em; line-height: 1.12; margin-bottom: 0;
 }
-.dx-conf { font-size: 0.75rem; color: #334155; }
-.dx-conf span { color: #60a5fa; font-weight: 600; font-variant-numeric: tabular-nums; }
-
-.conf-row {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;
+.dx-conf-block { text-align: right; }
+.dx-conf-lbl {
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.13em; color: #94a3b8; margin-bottom: 7px;
 }
-.conf-lbl { font-size: 0.60rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.10em; color: #334155; }
-.conf-pct { font-size: 0.78rem; font-weight: 700; color: #60a5fa; font-variant-numeric: tabular-nums; }
+.dx-conf-val { font-size: 1.5rem; font-weight: 800; color: #2563eb; font-variant-numeric: tabular-nums; }
 
-.tr-card { border-radius: 9px; padding: 12px 16px; margin: 10px 0 18px; }
-.tr-title { font-size: 0.86rem; font-weight: 700; color: #f1f5f9; margin-bottom: 2px; }
-.tr-sub { font-size: 0.73rem; color: #64748b; }
-.tr-safe    { background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.18); border-left: 3px solid #10b981; }
-.tr-unsure  { background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.18); border-left: 3px solid #f59e0b; }
-.tr-biopsy  { background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.18); border-left: 3px solid #ef4444; }
+.tr-card { border-radius: 9px; padding: 14px 16px; margin: 0 0 18px; display: flex; align-items: flex-start; gap: 10px; }
+.tr-dot { width: 9px; height: 9px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.tr-title { font-size: 0.88rem; font-weight: 700; color: #0f172a; margin-bottom: 2px; }
+.tr-sub { font-size: 0.76rem; color: #64748b; }
+.tr-safe    { background: #f0fdf4; border: 1px solid #bbf7d0; }
+.tr-safe .tr-dot    { background: #10b981; }
+.tr-unsure  { background: #fffbeb; border: 1px solid #fde68a; }
+.tr-unsure .tr-dot  { background: #f59e0b; }
+.tr-biopsy  { background: #fef2f2; border: 1px solid #fecaca; }
+.tr-biopsy .tr-dot  { background: #ef4444; }
 
 .ch-lbl {
-    font-size: 0.60rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.10em; color: #334155; margin: 20px 0 4px;
+    font-size: 0.66rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.10em; color: #94a3b8; margin: 22px 0 10px;
 }
+
+.panel-section-head { display: flex; align-items: baseline; gap: 9px; margin-bottom: 16px; }
+.panel-section-icon { font-size: 0.95rem; }
+.panel-section-title { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.11em; color: #0f172a; }
+.panel-section-q { font-size: 0.76rem; color: #94a3b8; font-weight: 500; }
 
 .ev-lbl {
-    font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.12em; color: #1e293b; margin: 18px 0 7px;
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: #94a3b8; margin: 18px 0 7px;
 }
 .ev {
-    background: #0b1626; border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 8px; padding: 10px 14px; margin: 5px 0;
-    font-size: 0.81rem; line-height: 1.6; color: #94a3b8;
+    background: #ffffff; border: 1px solid #e2e8f0;
+    border-radius: 9px; padding: 12px 16px; margin: 8px 0;
+    font-size: 0.82rem; line-height: 1.6; color: #64748b;
 }
-.ev strong { color: #cbd5e1; font-weight: 600; }
-.ev .str { float: right; font-size: 0.67rem; color: #1e293b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.ev strong { color: #0f172a; font-weight: 700; }
+.ev .str { float: right; font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; margin-top: 2px; }
 .ev-x {
-    background: rgba(99,102,241,0.04); border: 1px solid rgba(99,102,241,0.10);
-    border-radius: 8px; padding: 10px 14px; margin: 5px 0;
-    font-size: 0.81rem; line-height: 1.6; color: #64748b;
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 9px; padding: 12px 16px; margin: 8px 0;
+    font-size: 0.82rem; line-height: 1.6; color: #64748b;
 }
-.ev-x strong { color: #94a3b8; font-weight: 600; }
+.ev-x strong { color: #334155; font-weight: 600; }
 
 .about {
-    background: #0b1626; border: 1px solid rgba(255,255,255,0.05);
+    background: #ffffff; border: 1px solid #e2e8f0;
     border-radius: 12px; padding: 26px 28px;
 }
-.about-h { font-size: 1.0rem; font-weight: 700; color: #e2e8f0; letter-spacing: -0.01em; margin-bottom: 10px; }
-.about-p { font-size: 0.82rem; color: #475569; line-height: 1.8; margin-bottom: 22px; }
+.empty-icon { font-size: 1.8rem; margin-bottom: 10px; }
+.about-h { font-size: 1.05rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; margin-bottom: 10px; }
+.about-p { font-size: 0.84rem; color: #475569; line-height: 1.8; margin-bottom: 22px; }
 .st-row {
     display: flex; justify-content: space-between; align-items: baseline;
-    padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
-    font-size: 0.81rem;
+    padding: 7px 0; border-bottom: 1px solid #f1f5f9;
+    font-size: 0.83rem;
 }
 .st-row:last-child { border-bottom: none; padding-bottom: 0; }
-.st-k { color: #475569; }
-.st-v { color: #e2e8f0; font-weight: 600; font-variant-numeric: tabular-nums; }
-.about-legend { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.04); }
-.about-legend-row { font-size: 0.75rem; color: #334155; line-height: 2.1; }
+.st-k { color: #64748b; }
+.st-v { color: #0f172a; font-weight: 600; font-variant-numeric: tabular-nums; }
+.about-legend { margin-top: 18px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
+.about-legend-row { font-size: 0.78rem; color: #475569; line-height: 2.1; }
+
+.footer {
+    margin: 48px -2.5rem 0;
+    padding: 22px 2.5rem 26px;
+    border-top: 1px solid #e2e8f0;
+    text-align: center;
+}
+.footer-brand { font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 6px; }
+.footer-brand span { color: #cbd5e1; margin: 0 4px; }
+.footer-meta { font-size: 0.76rem; color: #94a3b8; margin-bottom: 4px; }
+.footer-disclaimer { font-size: 0.70rem; color: #cbd5e1; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -329,7 +374,6 @@ FEATURE_LABELS = {
     "age":                      "patient age",
 }
 TIER_LABEL = {"A": "Highly specific sign for", "B": "Commonly seen in", "C": "Occasionally seen in"}
-TIER_ICON  = {"A": "🔴", "B": "🟠", "C": "🟡"}
 TRIAGE_CFG = {
     "SAFE_BIOPSY_FREE": ("tr-safe",   "🟢", "Safe — Biopsy Not Required",       "High certainty, low diagnostic conflict"),
     "UNCERTAIN":        ("tr-unsure", "🟡", "Uncertain — Use Clinical Judgement","Moderate evidence; specialist referral may be warranted"),
@@ -375,6 +419,7 @@ def predict(model, grader, engineer, sym_pipeline, raw, rule_engine):
         "confidence":  confidence,
         "proba":       {DISEASES[i]: float(proba[i]) for i in range(len(DISEASES))},
         "recommendation": rec,
+        "top_certainty": top_cert,
         "sym_cert":    {d: float(X_sym[f"certainty_{d}"].iloc[0]) for d in DISEASES if f"certainty_{d}" in X_sym.columns},
         "fsm":         FSM_NAMES[min(fsm_val, 4)],
         "conflict":    conflict,
@@ -393,13 +438,13 @@ def altair_bar(df, x_col, bar_color, height=175):
         .mark_bar(cornerRadiusEnd=3, color=bar_color)
         .encode(
             x=alt.X(f"{x_col}:Q", title=None, scale=alt.Scale(domain=[0, 1]),
-                    axis=alt.Axis(format=".0%", labelColor="#334155",
-                                  gridColor="rgba(255,255,255,0.03)",
+                    axis=alt.Axis(format=".0%", labelColor="#94a3b8",
+                                  gridColor="#f1f5f9",
                                   domainOpacity=0, tickOpacity=0,
-                                  labelFontFamily="Inter", labelFontSize=10)),
+                                  labelFont="Inter", labelFontSize=10)),
             y=alt.Y("Disease:N", sort="-x", title=None,
-                    axis=alt.Axis(labelColor="#64748b", domainOpacity=0,
-                                  tickOpacity=0, labelFontFamily="Inter", labelFontSize=11)),
+                    axis=alt.Axis(labelColor="#334155", domainOpacity=0,
+                                  tickOpacity=0, labelFont="Inter", labelFontSize=11)),
             tooltip=["Disease:N", alt.Tooltip(f"{x_col}:Q", format=".1%", title=x_col)],
         )
         .properties(height=height, background="transparent")
@@ -407,27 +452,60 @@ def altair_bar(df, x_col, bar_color, height=175):
     )
 
 
+SEVERITY_TICKS = ["Absent", "Mild", "Moderate", "Severe"]
+
+
+def severity_slider(label, default=1):
+    value = st.slider(label, 0, 3, default)
+    pct = value / 3 * 100
+    ticks = "".join(
+        f'<span class="{"tick-on" if i == value else "tick-off"}">{i} {t}</span>'
+        for i, t in enumerate(SEVERITY_TICKS)
+    )
+    st.markdown(f"""<style>
+[data-testid="stSlider"]:has([aria-label="{label}"]) [data-baseweb="slider"] > div > div {{
+    background: linear-gradient(to right, #2563eb {pct}%, #e2e8f0 {pct}%) !important;
+}}
+</style>""", unsafe_allow_html=True)
+    st.markdown(f'<div class="tick-row" data-tick-for="{label}">{ticks}</div>', unsafe_allow_html=True)
+    return value
+
+
+def inject_slider_live_sync():
+    components.html("""
+<script>
+const LABELS = ["Erythema", "Scaling", "Definite borders", "Itching"];
+function syncSlider(doc, label) {
+    const thumb = doc.querySelector('[data-testid="stSlider"] [aria-label="' + label + '"]');
+    if (!thumb) return;
+    const val = parseFloat(thumb.getAttribute('aria-valuenow'));
+    const pct = val / 3 * 100;
+    const track = thumb.closest('[data-baseweb="slider"]').querySelector(':scope > div > div');
+    if (track) track.style.setProperty('background', 'linear-gradient(to right, #2563eb ' + pct + '%, #e2e8f0 ' + pct + '%)', 'important');
+    const tickRow = doc.querySelector('.tick-row[data-tick-for="' + label + '"]');
+    if (tickRow) {
+        [...tickRow.children].forEach((span, i) => {
+            span.className = (i === Math.round(val)) ? 'tick-on' : 'tick-off';
+        });
+    }
+}
+function loop() {
+    const doc = window.parent.document;
+    LABELS.forEach(label => syncSlider(doc, label));
+}
+setInterval(loop, 30);
+</script>
+""", height=0)
+
+
 # ── Navigation bar ─────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="nav">
   <div class="nav-left">
-    <span style="font-size:1.05rem;">🔬</span>
+    <span class="nav-dot"></span>
     <span class="nav-title">HSCIS-ESD</span>
-    <span class="nav-badge">Biopsy-Free</span>
-  </div>
-  <div class="nav-right">
-    <div class="nav-stat">
-      <div class="nav-stat-val">88.79%</div>
-      <div class="nav-stat-lbl">Accuracy</div>
-    </div>
-    <div class="nav-stat">
-      <div class="nav-stat-val">0.8850</div>
-      <div class="nav-stat-lbl">Macro F1</div>
-    </div>
-    <div class="nav-stat">
-      <div class="nav-stat-val">p = 0.0176</div>
-      <div class="nav-stat-lbl">McNemar</div>
-    </div>
+    <span class="nav-sep">|</span>
+    <span class="nav-badge">Biopsy-Free Differential Diagnosis</span>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -440,11 +518,11 @@ left, right = st.columns([1, 1.55], gap="large")
 with left:
     st.markdown('<p class="form-sec">Severity Signs</p>', unsafe_allow_html=True)
     with st.container(border=True):
-        erythema         = st.slider("Erythema",        0, 3, 1)
-        scaling          = st.slider("Scaling",         0, 3, 1)
-        definite_borders = st.slider("Definite borders",0, 3, 1)
-        itching          = st.slider("Itching",         0, 3, 1)
-        st.caption("0 = absent  ·  1 = mild  ·  2 = moderate  ·  3 = severe")
+        erythema         = severity_slider("Erythema")
+        scaling          = severity_slider("Scaling")
+        definite_borders = severity_slider("Definite borders")
+        itching          = severity_slider("Itching")
+        inject_slider_live_sync()
 
     st.markdown('<p class="form-sec">Clinical Signs</p>', unsafe_allow_html=True)
     with st.container(border=True):
@@ -481,46 +559,63 @@ with right:
         rec     = res["recommendation"]
         tr_cls, tr_ico, tr_title, tr_sub = TRIAGE_CFG.get(rec, ("tr-unsure","⚪",rec,""))
 
-        # ── Diagnosis ──────────────────────────────────────
-        st.markdown(f"""
+        # ── Section 1: Model Prediction ─────────────────────
+        with st.container(border=True):
+            st.markdown("""
+<div class="panel-section-head">
+  <span class="panel-section-icon">🧬</span>
+  <span class="panel-section-title">Model Prediction</span>
+  <span class="panel-section-q">— what disease does the pattern match?</span>
+</div>""", unsafe_allow_html=True)
+
+            st.markdown(f"""
 <div class="dx-card">
-  <p class="dx-eye">Primary Diagnosis</p>
-  <p class="dx-name">{dlabel}</p>
-  <p class="dx-conf">Classifier confidence &nbsp;<span>{conf*100:.1f}%</span></p>
+  <div>
+    <p class="dx-eye">Primary Diagnosis</p>
+    <p class="dx-name">{dlabel}</p>
+  </div>
+  <div class="dx-conf-block">
+    <p class="dx-conf-lbl">Classifier Confidence</p>
+    <p class="dx-conf-val">{conf*100:.1f}%</p>
+  </div>
 </div>""", unsafe_allow_html=True)
 
-        st.markdown(f'<div class="conf-row"><span class="conf-lbl">Confidence</span><span class="conf-pct">{conf*100:.1f}%</span></div>', unsafe_allow_html=True)
-        st.progress(conf)
-
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Confidence",  f"{conf*100:.1f}%")
-        m2.metric("Diagnostic State", res["fsm"].split()[0])
-        m3.metric("Conflict Load", f"{res['conflict']:.3f}")
-        m4.metric("Contradiction", f"{res['contradiction']:.3f}")
-
-        # ── Triage ─────────────────────────────────────────
-        st.markdown(f"""
-<div class="tr-card {tr_cls}">
-  <p class="tr-title">{tr_ico} {tr_title}</p>
-  <p class="tr-sub">{tr_sub}</p>
-</div>""", unsafe_allow_html=True)
-
-        # ── Probability chart ───────────────────────────────
-        st.markdown('<p class="ch-lbl">Classifier Probabilities</p>', unsafe_allow_html=True)
-        prob_df = pd.DataFrame({
-            "Disease": [DISEASE_LABELS[d] for d in DISEASES],
-            "Probability": [res["proba"][d] for d in DISEASES],
-        })
-        st.altair_chart(altair_bar(prob_df, "Probability", "#2563eb"), use_container_width=True)
-
-        # ── Symbolic certainty chart ───────────────────────
-        if res["sym_cert"]:
-            st.markdown('<p class="ch-lbl">Expert Rule Certainty</p>', unsafe_allow_html=True)
-            cert_df = pd.DataFrame({
-                "Disease": [DISEASE_LABELS[d] for d in DISEASES if d in res["sym_cert"]],
-                "Certainty": [res["sym_cert"][d] for d in DISEASES if d in res["sym_cert"]],
+            prob_df = pd.DataFrame({
+                "Disease": [DISEASE_LABELS[d] for d in DISEASES],
+                "Probability": [res["proba"][d] for d in DISEASES],
             })
-            st.altair_chart(altair_bar(cert_df, "Certainty", "#7c3aed"), use_container_width=True)
+            st.altair_chart(altair_bar(prob_df, "Probability", "#2563eb"), use_container_width=True)
+
+        # ── Section 2: Safety Check ─────────────────────────
+        with st.container(border=True):
+            st.markdown("""
+<div class="panel-section-head">
+  <span class="panel-section-icon">🛡️</span>
+  <span class="panel-section-title">Safety Check</span>
+  <span class="panel-section-q">— is it safe to skip biopsy?</span>
+</div>""", unsafe_allow_html=True)
+
+            st.markdown(f"""
+<div class="tr-card {tr_cls}">
+  <span class="tr-dot"></span>
+  <div>
+    <p class="tr-title">{tr_title}</p>
+    <p class="tr-sub">{tr_sub}</p>
+  </div>
+</div>""", unsafe_allow_html=True)
+
+            m1, m2, m3 = st.columns(3)
+            m1.metric("Rule Certainty",   f"{res['top_certainty']*100:.1f}%")
+            m2.metric("Diagnostic State", res["fsm"].split()[0])
+            m3.metric("Conflict Load",    f"{res['conflict']:.3f}")
+
+            if res["sym_cert"]:
+                st.markdown('<p class="ch-lbl">Expert Rule Certainty</p>', unsafe_allow_html=True)
+                cert_df = pd.DataFrame({
+                    "Disease": [DISEASE_LABELS[d] for d in DISEASES if d in res["sym_cert"]],
+                    "Certainty": [res["sym_cert"][d] for d in DISEASES if d in res["sym_cert"]],
+                })
+                st.altair_chart(altair_bar(cert_df, "Certainty", "#7c3aed"), use_container_width=True)
 
         # ── Clinical reasoning ──────────────────────────────
         st.markdown('<p class="ch-lbl" style="margin-top:22px;">Clinical Reasoning</p>', unsafe_allow_html=True)
@@ -544,11 +639,10 @@ with right:
 
                 for tk in ["A", "B", "C"]:
                     if tk not in tg: continue
-                    icon  = TIER_ICON.get(tk, "")
                     tier  = TIER_LABEL.get(tk, tk)
                     signs = ", ".join(tg[tk]["features"])
                     s     = ev_strength(tg[tk]["mc"])
-                    st.markdown(f"""<div class="ev">{icon} <strong>{tier} {pred_label}</strong><span class="str">{s}</span><br>{signs}</div>""", unsafe_allow_html=True)
+                    st.markdown(f"""<div class="ev"><strong>{tier} {pred_label}</strong><span class="str">{s}</span><br>{signs}</div>""", unsafe_allow_html=True)
             else:
                 st.caption(f"No specific rules fired for {pred_label} — prediction driven by statistical pattern.")
 
@@ -562,7 +656,7 @@ with right:
                     sign_map.setdefault(s, [])
                     if d not in sign_map[s]: sign_map[s].append(d)
                 for sign, diseases in sign_map.items():
-                    st.markdown(f"""<div class="ev-x">⬇️ <strong>{sign}</strong> — not typical for {", ".join(diseases)}</div>""", unsafe_allow_html=True)
+                    st.markdown(f"""<div class="ev-x"><strong>{sign}</strong> — not typical for {", ".join(diseases)}</div>""", unsafe_allow_html=True)
 
             other = [r for r in fired if r["disease"] != pred_dis and r["tier"] != "D"]
             if other:
@@ -576,33 +670,25 @@ with right:
                             if lbl not in dtg[key]["features"]: dtg[key]["features"].append(lbl)
                         if r["contribution"] > dtg[key]["mc"]: dtg[key]["mc"] = r["contribution"]
                     for (dis, tk), g in sorted(dtg.items(), key=lambda x: (-x[1]["mc"], x[0][0])):
-                        icon  = TIER_ICON.get(tk, "")
                         tier  = TIER_LABEL.get(tk, tk)
                         signs = ", ".join(g["features"])
                         s     = ev_strength(g["mc"])
-                        st.markdown(f"{icon} **{tier} {dis}** — *{signs}* ({s})")
+                        st.markdown(f"**{tier} {dis}** — *{signs}* (match: {s})")
         else:
             st.caption("No expert rules fired — prediction driven entirely by statistical classifier.")
 
     else:
-        # ── About card (pre-diagnosis) ──────────────────────
+        # ── Empty state (pre-diagnosis) ──────────────────────
         st.markdown("""
 <div class="about">
-  <p class="about-h">Erythemato-Squamous Disease Diagnosis</p>
+  <div class="empty-icon">🩺</div>
+  <p class="about-h">Awaiting Clinical Input</p>
   <p class="about-p">
-    HSCIS-ESD differentiates six clinically similar skin diseases using only
-    12 observable clinical features — no biopsy required. The system combines
-    fuzzy symptom grading, 41 expert-encoded diagnostic rules across four
-    evidence tiers, and a CatBoost classifier trained on 366 patients from
-    the UCI Dermatology Dataset.
+    Fill in the severity and clinical signs on the left, then run diagnosis
+    to see the predicted disease, confidence, diagnostic state, and full
+    expert-rule reasoning trace.
   </p>
-  <div class="st-row"><span class="st-k">Accuracy</span><span class="st-v">88.79% ±3.34%</span></div>
-  <div class="st-row"><span class="st-k">Macro F1</span><span class="st-v">0.8850</span></div>
-  <div class="st-row"><span class="st-k">vs. clinical baseline</span><span class="st-v">+3.84 pp &nbsp;(McNemar p = 0.0176)</span></div>
-  <div class="st-row"><span class="st-k">Expert rules</span><span class="st-v">41 rules · 4 evidence tiers</span></div>
-  <div class="st-row"><span class="st-k">Variance reduction</span><span class="st-v">45% (±6.01% → ±3.34%)</span></div>
-  <div class="st-row"><span class="st-k">Training patients</span><span class="st-v">366 · UCI Dermatology Dataset</span></div>
-  <div class="about-legend">
+  <div class="about-legend" style="margin-top:4px; padding-top:16px;">
     <div class="about-legend-row">🟢 &nbsp;<strong style="color:#94a3b8;">Safe</strong> &nbsp;— high certainty, low conflict</div>
     <div class="about-legend-row">🟡 &nbsp;<strong style="color:#94a3b8;">Uncertain</strong> &nbsp;— moderate evidence, clinical judgement required</div>
     <div class="about-legend-row">🔴 &nbsp;<strong style="color:#94a3b8;">Biopsy advised</strong> &nbsp;— ambiguous evidence, histopathology recommended</div>
@@ -611,5 +697,10 @@ with right:
 """, unsafe_allow_html=True)
 
 # ── Footer ─────────────────────────────────────────────────────────────────────
-st.markdown("<br>", unsafe_allow_html=True)
-st.caption("UCI Dermatology Dataset · 366 patients · 6 ESD classes · CC BY 4.0 · Ridanshi Agarwal")
+st.markdown("""
+<div class="footer">
+  <div class="footer-brand">HSCIS-ESD <span>·</span> Biopsy-Free Differential Diagnosis</div>
+  <div class="footer-meta">UCI Dermatology Dataset &nbsp;·&nbsp; 366 patients &nbsp;·&nbsp; 6 ESD classes &nbsp;·&nbsp; CC BY 4.0</div>
+  <div class="footer-disclaimer">For research and educational use only — not a substitute for professional clinical diagnosis.</div>
+</div>
+""", unsafe_allow_html=True)

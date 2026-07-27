@@ -319,6 +319,13 @@ hr { border-color: #e2e8f0 !important; margin: 1rem 0 !important; }
 }
 .ev-x strong { color: #334155; font-weight: 600; }
 
+.ev-none {
+    background: #fffbeb; border: 1px solid #fde68a;
+    border-radius: 9px; padding: 12px 16px; margin: 8px 0;
+    font-size: 0.82rem; line-height: 1.6; color: #92400e;
+}
+.ev-none strong { color: #78350f; font-weight: 700; }
+
 .about {
     background: #ffffff; border: 1px solid #e2e8f0;
     border-radius: 12px; padding: 26px 28px;
@@ -644,7 +651,13 @@ with right:
                     s     = ev_strength(tg[tk]["mc"])
                     st.markdown(f"""<div class="ev"><strong>{tier} {pred_label}</strong><span class="str">{s}</span><br>{signs}</div>""", unsafe_allow_html=True)
             else:
-                st.caption(f"No specific rules fired for {pred_label} — prediction driven by statistical pattern.")
+                st.markdown(f"""<div class="ev-none">
+  <strong>No rule-tier match for {pred_label}</strong><br>
+  None of the 45 expert rules matched this patient's signs strongly enough to directly support {pred_label}.
+  The {conf*100:.1f}% classifier confidence comes from the model's broader statistical pattern across all 29 features —
+  not a specific clinical sign combination. That's exactly why Rule Certainty reads {res['top_certainty']*100:.1f}%
+  and Safety Check recommends "{tr_title}" above.
+</div>""", unsafe_allow_html=True)
 
             penalising = [r for r in fired if r["tier"] == "D"]
             if penalising:

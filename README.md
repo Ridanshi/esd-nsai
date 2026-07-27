@@ -2,6 +2,8 @@
 
 A biopsy-free differential diagnosis system for six erythemato-squamous diseases using fuzzy logic, symbolic rule-based reasoning, and a regularised statistical classifier — requiring only 12 observable clinical features.
 
+**Live demo:** [esd-nsai.streamlit.app](https://esd-nsai.streamlit.app/)
+
 ---
 
 ## Problem
@@ -135,6 +137,7 @@ Marginal contribution of each feature layer (controlled comparison using XGBoost
 | prp_core | follicular × scaling | 0.242 | PRP signature |
 | scale_erythema_ratio | scaling / (erythema + 0.01) | 0.183 | Psoriasis vs LP discriminator |
 | inflammation_burden | (erythema + scaling + itching) / 9 | 0.134 | Overall severity |
+| older_patient | 1 if age > 50 else 0 | 0.081 | PRP adult type / late-onset psoriasis |
 | pso_triad | koebner × knee_elbow × family_history | 0.055 | Near-unique psoriasis combination |
 
 ---
@@ -163,7 +166,10 @@ pip install -r requirements.txt
 ## Usage
 
 ```bash
-# All 43 unit tests
+# Launch the interactive diagnosis UI
+streamlit run app.py
+
+# All 48 unit tests
 python -m pytest tests/ -v
 
 # Full model comparison + McNemar test
@@ -192,6 +198,7 @@ jupyter lab notebooks/analysis.ipynb
 ```
 esd-neuro-symbolic/
 ├── requirements.txt
+├── app.py                         Streamlit inference UI (live demo above)
 ├── rules/                         45 expert-encoded diagnostic YAML rules
 ├── src/
 │   ├── data/loader.py             UCI fetch, imputation, class encoding
@@ -212,7 +219,7 @@ esd-neuro-symbolic/
 │   └── evaluation/
 │       ├── metrics.py             Comparison table, McNemar test, safety analysis
 │       └── explainability.py      SHAP + imodels rule extraction
-├── tests/                         43 unit tests (all passing)
+├── tests/                         48 unit tests (all passing)
 ├── eval_run.py                    Model A/B/C comparison + McNemar B vs C
 ├── ablation.py                    4-layer feature ablation study
 ├── diagnose_fit.py                Train vs val accuracy per fold

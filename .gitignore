@@ -23,6 +23,12 @@ env/
 # Internal planning docs
 docs/superpowers/
 
+# Local tooling / session notes — not for public repo
+.claude/
+session.md
+hritwik-session.md
+paper.md
+
 # OS
 .DS_Store
 Thumbs.db

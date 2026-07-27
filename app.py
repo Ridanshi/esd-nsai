@@ -326,6 +326,13 @@ hr { border-color: #e2e8f0 !important; margin: 1rem 0 !important; }
 }
 .ev-none strong { color: #78350f; font-weight: 700; }
 
+.ev-counter {
+    background: #fef2f2; border: 1px solid #fecaca;
+    border-radius: 9px; padding: 12px 16px; margin: 8px 0;
+    font-size: 0.82rem; line-height: 1.6; color: #991b1b;
+}
+.ev-counter strong { color: #7f1d1d; font-weight: 700; }
+
 .about {
     background: #ffffff; border: 1px solid #e2e8f0;
     border-radius: 12px; padding: 26px 28px;
@@ -659,7 +666,16 @@ with right:
   and Safety Check recommends "{tr_title}" above.
 </div>""", unsafe_allow_html=True)
 
-            penalising = [r for r in fired if r["tier"] == "D"]
+            against_pred = [r for r in fired if r["tier"] == "D" and r["disease"] == pred_dis]
+            if against_pred:
+                st.markdown(f'<p class="ev-lbl" style="margin-top:14px;">Working against {pred_label}</p>', unsafe_allow_html=True)
+                for r in against_pred:
+                    signs = ", ".join(FEATURE_LABELS.get(f, f) for f in r.get("conditions", []))
+                    comp_key = r.get("competitor") or ""
+                    competitor = DISEASE_LABELS.get(comp_key, comp_key)
+                    st.markdown(f"""<div class="ev-counter"><strong>{signs}</strong> — more typical of {competitor}, counts against {pred_label}</div>""", unsafe_allow_html=True)
+
+            penalising = [r for r in fired if r["tier"] == "D" and r["disease"] != pred_dis]
             if penalising:
                 st.markdown('<p class="ev-lbl" style="margin-top:14px;">Signs that argue against other diagnoses</p>', unsafe_allow_html=True)
                 sign_map = {}

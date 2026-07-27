@@ -76,6 +76,7 @@ class RuleEngine:
                     "id": rule["id"],
                     "disease": rule["disease"],
                     "tier": rule.get("tier"),
+                    "competitor": rule.get("competitor"),
                     "firing_strength": round(strength, 4),
                     "contribution": round(strength * rule["weight"], 4),
                     "conditions": [c["feature"] for c in rule.get("conditions", [])],

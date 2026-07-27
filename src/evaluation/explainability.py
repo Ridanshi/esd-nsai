@@ -4,14 +4,14 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import shap
-from xgboost import XGBClassifier
-from src.models.base import get_xgb_params, DISEASES
+from catboost import CatBoostClassifier
+from src.models.base import get_catboost_params_c, DISEASES
 
 
-def train_final_model(X: pd.DataFrame, y: pd.Series) -> XGBClassifier:
-    """Train on full dataset (no CV) for SHAP/imodels analysis."""
-    model = XGBClassifier(**get_xgb_params())
-    model.fit(X, y, verbose=False)
+def train_final_model(X: pd.DataFrame, y: pd.Series) -> CatBoostClassifier:
+    """Train on full dataset (no CV) for SHAP/imodels analysis. Matches deployed Model C (CatBoost)."""
+    model = CatBoostClassifier(**get_catboost_params_c())
+    model.fit(X, y)
     return model
 
 

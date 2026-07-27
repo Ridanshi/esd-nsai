@@ -32,7 +32,7 @@ This system uses **only the 12 clinical features** observable without biopsy.
 [FeatureEngineer]  8 MI-selected clinical interaction features
         ↓
 [Symbolic Engine]
-  ├── RuleEngine        41 expert-encoded fuzzy rules, 4 evidence tiers
+  ├── RuleEngine        45 expert-encoded fuzzy rules, 4 evidence tiers
   ├── ConflictAnalyzer  conflict_load + contradiction_severity
   └── DiagnosticFSM     5-state diagnostic trajectory
         ↓
@@ -139,11 +139,11 @@ Marginal contribution of each feature layer (controlled comparison using XGBoost
 
 ---
 
-## Rule Library (41 rules across 6 YAML files)
+## Rule Library (45 rules across 6 YAML files)
 
 | File | Rules | Notable Rule |
 |---|---|---|
-| psoriasis.yaml | 7 | PSO_A02: family_history + koebner + knee_elbow (unique combo) |
+| psoriasis.yaml | 8 | PSO_A02: family_history + koebner + knee_elbow (unique combo) |
 | seborrheic_dermatitis.yaml | 7 | SEB_A02: scalp + itching + scaling triad |
 | lichen_planus.yaml | 7 | LIC_A03: polygonal_papules alone (pathognomonic) |
 | pityriasis_rosea.yaml | 7 | PIT_D02/D03: scalp and age penalisers |
@@ -192,7 +192,7 @@ jupyter lab notebooks/analysis.ipynb
 ```
 esd-neuro-symbolic/
 ├── requirements.txt
-├── rules/                         41 expert-encoded diagnostic YAML rules
+├── rules/                         45 expert-encoded diagnostic YAML rules
 ├── src/
 │   ├── data/loader.py             UCI fetch, imputation, class encoding
 │   ├── grading/
@@ -225,7 +225,7 @@ esd-neuro-symbolic/
 
 ## Novel Contributions
 
-1. **Fuzzy-symbolic certainty engine** — 41 rules with 4 evidence tiers encode dermatologist knowledge as computable certainty scores, not binary flags
+1. **Fuzzy-symbolic certainty engine** — 45 rules with 4 evidence tiers encode dermatologist knowledge as computable certainty scores, not binary flags
 2. **Diagnostic FSM** — 5-state trajectory (EVIDENCE_SPARSE → HYPOTHESIS_FORMING → BUILDING → TENSION → RESOLVED) models diagnostic progression explicitly
 3. **Variance stabilisation** — symbolic features reduce prediction variance by 45% vs clinical-only baseline (±2.66% vs ±4.86% in ablation; ±3.55% vs ±6.01% vs baseline B)
 4. **Clinical feature engineering** — 8 interaction features grounded in dermatological co-occurrence patterns, selected by mutual information

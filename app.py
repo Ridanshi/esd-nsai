@@ -76,6 +76,7 @@ def predict(model, grader, engineer, sym_pipeline, raw_input: dict, rule_engine=
         top_certainty=top_certainty,
         conflict_load=float(X_sym["conflict_load"].iloc[0]),
         fsm_state=int(X_sym["fsm_state"].iloc[0]),
+        contradiction_severity=float(X_sym["contradiction_severity"].iloc[0]),
     )
 
     sym_certainties = {
@@ -86,6 +87,7 @@ def predict(model, grader, engineer, sym_pipeline, raw_input: dict, rule_engine=
     fsm_val = int(X_sym["fsm_state"].iloc[0]) if "fsm_state" in X_sym.columns else 0
     fsm_name = fsm_state_names[min(fsm_val, 4)]
     conflict = float(X_sym["conflict_load"].iloc[0]) if "conflict_load" in X_sym.columns else 0.0
+    contradiction = float(X_sym["contradiction_severity"].iloc[0]) if "contradiction_severity" in X_sym.columns else 0.0
 
     # Fired rules for reasoning trace
     fired_rules = []
@@ -100,6 +102,7 @@ def predict(model, grader, engineer, sym_pipeline, raw_input: dict, rule_engine=
         "sym_certainties": sym_certainties,
         "fsm_state": fsm_name,
         "conflict_load": conflict,
+        "contradiction_severity": contradiction,
         "fired_rules": fired_rules,
     }
 
@@ -169,7 +172,7 @@ with col2:
 
         # Biopsy triage
         st.markdown(f"**Biopsy Recommendation:** {icon} `{rec}`")
-        st.caption(f"Symbolic FSM state: `{result['fsm_state']}` · Conflict load: `{result['conflict_load']:.3f}`")
+        st.caption(f"Symbolic FSM state: `{result['fsm_state']}` · Conflict load: `{result['conflict_load']:.3f}` · Contradiction severity: `{result['contradiction_severity']:.3f}`")
 
         st.divider()
 

@@ -443,6 +443,9 @@ def predict(model, grader, engineer, sym_pipeline, raw, rule_engine):
 
 
 def ev_strength(c):
+    # Takes firing strength (how well the patient matches the rule's conditions),
+    # not contribution — contribution is strength x tier weight, so a B-tier rule
+    # (max 0.7) could never read "Strong" and a C-tier one (max 0.3) was always "Weak".
     return "Strong" if c >= 0.80 else "Moderate" if c >= 0.50 else "Weak"
 
 
@@ -618,10 +621,11 @@ with right:
   </div>
 </div>""", unsafe_allow_html=True)
 
-            m1, m2, m3 = st.columns(3)
+            m1, m2, m3, m4 = st.columns(4)
             m1.metric("Rule Certainty",   f"{res['top_certainty']*100:.1f}%")
             m2.metric("Diagnostic State", res["fsm"].split()[0])
             m3.metric("Conflict Load",    f"{res['conflict']:.3f}")
+            m4.metric("Contradiction",    f"{res['contradiction']:.3f}")
 
             if res["sym_cert"]:
                 st.markdown('<p class="ch-lbl">Expert Rule Certainty</p>', unsafe_allow_html=True)
@@ -641,7 +645,7 @@ with right:
             primary    = [r for r in fired if r["disease"] == pred_dis and r["tier"] != "D"]
 
             if primary:
-                tg = defaultdict(lambda: {"features": [], "mc": 0.0})
+                tg = defaultdict(lambda: {"features": [], "mc": 0.0, "ms": 0.0})
                 for r in sorted(primary, key=lambda x: -x["contribution"]):
                     t = r["tier"]
                     for f in r.get("conditions", []):
@@ -650,12 +654,14 @@ with right:
                             tg[t]["features"].append(lbl)
                     if r["contribution"] > tg[t]["mc"]:
                         tg[t]["mc"] = r["contribution"]
+                    if r["firing_strength"] > tg[t]["ms"]:
+                        tg[t]["ms"] = r["firing_strength"]
 
                 for tk in ["A", "B", "C"]:
                     if tk not in tg: continue
                     tier  = TIER_LABEL.get(tk, tk)
                     signs = ", ".join(tg[tk]["features"])
-                    s     = ev_strength(tg[tk]["mc"])
+                    s     = ev_strength(tg[tk]["ms"])
                     st.markdown(f"""<div class="ev"><strong>{tier} {pred_label}</strong><span class="str">{s}</span><br>{signs}</div>""", unsafe_allow_html=True)
             else:
                 st.markdown(f"""<div class="ev-none">
@@ -693,15 +699,16 @@ with right:
                     dtg = {}
                     for r in other:
                         key = (DISEASE_LABELS.get(r["disease"], r["disease"]), r["tier"])
-                        dtg.setdefault(key, {"features": [], "mc": 0.0})
+                        dtg.setdefault(key, {"features": [], "mc": 0.0, "ms": 0.0})
                         for f in r.get("conditions", []):
                             lbl = FEATURE_LABELS.get(f, f)
                             if lbl not in dtg[key]["features"]: dtg[key]["features"].append(lbl)
                         if r["contribution"] > dtg[key]["mc"]: dtg[key]["mc"] = r["contribution"]
+                        if r["firing_strength"] > dtg[key]["ms"]: dtg[key]["ms"] = r["firing_strength"]
                     for (dis, tk), g in sorted(dtg.items(), key=lambda x: (-x[1]["mc"], x[0][0])):
                         tier  = TIER_LABEL.get(tk, tk)
                         signs = ", ".join(g["features"])
-                        s     = ev_strength(g["mc"])
+                        s     = ev_strength(g["ms"])
                         st.markdown(f"**{tier} {dis}** — *{signs}* (match: {s})")
         else:
             st.caption("No expert rules fired — prediction driven entirely by statistical classifier.")

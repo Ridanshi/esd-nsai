@@ -90,4 +90,4 @@ for d in DISEASES:
 print("\nMarginal gains (accuracy):")
 for i in range(1, len(results)):
     delta = results[i]['acc_mean'] - results[i-1]['acc_mean']
-    print(f"  {results[i-1]['label'].strip()} → {results[i]['label'].strip()}: {delta:+.4f}")
+    print(f"  {results[i-1]['label'].strip()} -> {results[i]['label'].strip()}: {delta:+.4f}")

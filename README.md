@@ -234,11 +234,11 @@ esd-neuro-symbolic/
 
 1. **Fuzzy-symbolic certainty engine** — 45 rules with 4 evidence tiers encode dermatologist knowledge as computable certainty scores, not binary flags
 2. **Diagnostic FSM** — 5-state trajectory (EVIDENCE_SPARSE → HYPOTHESIS_FORMING → BUILDING → TENSION → RESOLVED) models diagnostic progression explicitly
-3. **Variance stabilisation** — symbolic features reduce prediction variance by 45% vs clinical-only baseline (±2.66% vs ±4.86% in ablation; ±3.55% vs ±6.01% vs baseline B)
+3. **Variance stabilisation** — symbolic features reduce prediction variance by 45% in ablation isolation (±4.86% → ±2.66%) and by 44% in the full headline comparison (±6.01% baseline B → ±3.34% final Model C)
 4. **Clinical feature engineering** — 8 interaction features grounded in dermatological co-occurrence patterns, selected by mutual information
 5. **Per-patient reasoning trace** — each diagnosis includes fired rules, certainty scores, conflict load, and FSM state; fully auditable by a clinician
 6. **Biopsy triage protocol** — rule-based SAFE_BIOPSY_FREE / UNCERTAIN / BIOPSY_ADVISED with no learned thresholds
-7. **Diagnostic ceiling finding** — chronic_dermatitis F1 drops to 0.755 even with symbolic reasoning, proving biopsy-free diagnosis has hard limits for exclusion-based diagnoses (publishable negative result)
+7. **Diagnostic ceiling finding** — chronic_dermatitis F1 caps at 0.7963 even with symbolic reasoning, proving biopsy-free diagnosis has hard limits for exclusion-based diagnoses (publishable negative result)
 
 ---
 

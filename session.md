@@ -1,5 +1,5 @@
 # Session Log — HSCIS-ESD Project
-**Last updated:** 2026-07-11
+**Last updated:** 2026-07-15 (see §20 for current model — this file's early sections (§1-19) predate the CatBoost switch and describe XGBoost-era numbers)
 **Project:** Hybrid Symbolic Clinical Inference System for Erythemato-Squamous Disease Diagnosis
 **Repo:** https://github.com/Ridanshi/esd-nsai (branch: main, sole contributor: Ridanshi)
 
@@ -27,7 +27,7 @@ Six erythemato-squamous diseases — psoriasis, seborrheic dermatitis, lichen pl
 [FeatureEngineer]  8 clinically-grounded interaction features
         ↓
 [Symbolic Engine]
-  ├── RuleEngine        41 expert-encoded fuzzy rules, 4 tiers
+  ├── RuleEngine        45 expert-encoded fuzzy rules, 4 tiers
   ├── ConflictAnalyzer  conflict_load + contradiction_severity
   └── DiagnosticFSM     5-state diagnostic trajectory
         ↓
@@ -116,7 +116,7 @@ Do NOT claim accuracy improvement as the primary contribution. Claim instead:
 
 ## 6. Rule Library
 
-41 expert-encoded fuzzy rules across 6 YAML files:
+45 expert-encoded fuzzy rules across 6 YAML files:
 
 | File | Rules | Key rule |
 |---|---|---|
@@ -232,7 +232,7 @@ esd-neuro-symbolic/
 ├── eval_run.py                       run full comparison + McNemar test
 ├── select_features.py                MI scoring for engineered features
 ├── trace.py                          per-patient reasoning trace (10 patients)
-├── rules/                            41 expert-encoded diagnostic YAML rules
+├── rules/                            45 expert-encoded diagnostic YAML rules
 │   ├── psoriasis.yaml               (7 rules)
 │   ├── seborrheic_dermatitis.yaml   (7 rules)
 │   ├── lichen_planus.yaml           (7 rules)
@@ -440,3 +440,55 @@ jupyter lab notebooks/analysis.ipynb
 ### Commits
 - `c9d281d` — docs: update session log with 2026-07-11 regularization tuning results
 - Next: README + paper.md + session.md push
+
+---
+
+## 20. Session Log — 2026-07-15 — CatBoost Migration + Streamlit App
+
+### XGBoost → CatBoost Switch
+`c304290` — swapped Model C's estimator from XGBoost to CatBoost (ordered boosting):
+- Accuracy: 86.61% → 87.16% (+0.55pp)
+- Macro F1: 0.8619 → 0.8672
+- Train-val gap: +4.59% → +3.88% (less overfitting)
+- Per-class gains: psoriasis +1.26pp, pityriasis_rosea +2.06pp
+- `get_catboost_params_c()` added to `base.py`; `get_xgb_params_c()` kept deliberately for `ablation.py`'s reference comparison (see its docstring)
+- `catboost_trial.py` added as the head-to-head comparison script
+
+### CatBoost Hyperparameter Tuning
+`1c56f4f` — 108-combo CV sweep (`iterations` / `depth` / `l2_leaf_reg` / `learning_rate` / `subsample`):
+- Winner: `iterations=200, depth=3, l2_leaf_reg=5.0, learning_rate=0.05, subsample=0.8`
+- Accuracy: 86.61% → **88.79%** (+2.18pp vs. XGBoost baseline)
+- Macro F1: 0.8619 → **0.8850**
+- Train-val gap: +4.59% → **+1.19%**
+- McNemar B vs C: p=0.327 (not significant) → **p=0.0176 (significant)**
+- chronic_dermatitis F1: 0.7400 → 0.7963
+
+### Streamlit Inference App (`app.py`)
+`937c6c8` (2026-07-16) — added `app.py`: trains CatBoost on the full 366-patient dataset at startup (`st.cache_resource`), predicts in real time from 12 raw clinical inputs, shows the reasoning trace + biopsy triage verdict in the UI.
+
+7 follow-up commits same day (`d0b34f1` → `20d59c9`) polished the reasoning-trace UI — from raw numeric rule strengths to plain-English tier language, grouped by disease and tier.
+
+### Current Model C status (post-tuning)
+| Metric | Value |
+|---|---|
+| Accuracy | 88.79% ± 3.34% |
+| Macro F1 | 0.8850 |
+| Train-val gap | +1.19% (minimal overfitting) |
+| McNemar B vs C | p=0.0176 (significant) |
+
+These are the numbers in `README.md`'s main comparison table and `paper.md`'s abstract. The ablation table (§4 above / README's ablation section) still shows 86.61%-era numbers — correct, not stale: `ablation.py` deliberately stays on XGBoost as a fixed reference point, per its own docstring.
+
+---
+
+## 21. What Is Left — re-checked 2026-07-24
+
+Re-verified against actual current repo state (audit branch `hritwik/audit-fixes`, see `changes-made.md` for the 10 findings this covers):
+
+1. ~~**Ablation study**~~ — DONE (`ablation.py`, XGBoost reference config, intentional)
+2. **Run analysis.ipynb end-to-end** — partially done. `explainability.py`'s `train_final_model()` was silently still training XGBoost (with generic, never-tuned params) through the entire CatBoost era — fixed 2026-07-24 to train real CatBoost (`get_catboost_params_c()`), verified SHAP `TreeExplainer` works against it. Notebook itself not re-executed top-to-bottom since.
+3. ~~**Write the paper**~~ — `paper.md` draft exists, current numbers (88.79%, 45 rules)
+4. **Threshold sweep for BiopsyTriage** — still open. Related: `contradiction_severity` added as a 4th input to `BiopsyTriage.recommend()` on 2026-07-24 (was computed but never consulted) — its threshold (`0.30`) is a placeholder pending your review, not derived from outcome data.
+5. ~~**Update README with final numbers**~~ — already done, README's main table has 88.79%/0.8850
+
+### New open item from the audit branch
+6. **Rule weight recalibration** — no fix applied (deliberately — this is your clinical judgment call, not something to auto-optimize). A measurement-only ablation tool (`ablation_rules.py`) was built to show each of the 45 rules' individual CV accuracy impact when zeroed out, as evidence if you want to revisit any weight. `rules/*.yaml` untouched.

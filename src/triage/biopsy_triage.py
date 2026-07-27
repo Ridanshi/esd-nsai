@@ -5,6 +5,9 @@ TRIAGE_TIERS = ["SAFE_BIOPSY_FREE", "UNCERTAIN", "BIOPSY_ADVISED"]
 
 SAFE_CERTAINTY_THRESHOLD = 0.75
 SAFE_CONFLICT_THRESHOLD = 0.20
+# Placeholder pending Ridanshi's clinical judgment (changes-made.md #7) — mirrors
+# the existing SAFE_CONFLICT_THRESHOLD pattern, not derived from outcome data.
+SAFE_CONTRADICTION_THRESHOLD = 0.30
 UNCERTAIN_CERTAINTY_THRESHOLD = 0.55
 UNCERTAIN_CONFLICT_THRESHOLD = 0.40
 
@@ -15,10 +18,12 @@ class BiopsyTriage:
         top_certainty: float,
         conflict_load: float,
         fsm_state: int,
+        contradiction_severity: float = 0.0,
     ) -> str:
         if (
             top_certainty >= SAFE_CERTAINTY_THRESHOLD
             and conflict_load < SAFE_CONFLICT_THRESHOLD
+            and contradiction_severity < SAFE_CONTRADICTION_THRESHOLD
             and fsm_state == FSMState.RESOLVED
         ):
             return "SAFE_BIOPSY_FREE"
@@ -39,6 +44,7 @@ class BiopsyTriage:
                 top_certainty=top_certainty.iloc[i],
                 conflict_load=float(X_symbolic["conflict_load"].iloc[i]),
                 fsm_state=int(X_symbolic["fsm_state"].iloc[i]),
+                contradiction_severity=float(X_symbolic["contradiction_severity"].iloc[i]),
             )
             for i in range(len(X_symbolic))
         ], name="triage")

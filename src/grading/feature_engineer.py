@@ -48,9 +48,9 @@ class FeatureEngineer:
             # PRP adult type, late-onset psoriasis — age > 50yr (MI=0.081)
             "older_patient": 1.0 if age > 0.625 else 0.0,
             # Psoriasis = scaling-dominant; LP/chronic derm = erythema-dominant (MI=0.144)
-            "scale_erythema_ratio": scaling / (erythema + 0.01),
+            "scale_erythema_ratio": min(scaling / (erythema + 0.01), 3.0),
             # Overall inflammatory burden: (erythema + scaling + itching) / max (MI=0.164)
-            "inflammation_burden": (erythema + scaling + itching) / 9.0,
+            "inflammation_burden": (erythema + scaling + itching) / 3.0,
             # No disease-specific morphology → seb derm or chronic derm territory (MI=0.345)
             "no_specific_morphology": 1.0 - float(np.clip(polygonal + follicular + koebner, 0.0, 1.0)),
         })

@@ -45,6 +45,38 @@ def test_biopsy_advised_high_conflict(triage):
     assert result != "SAFE_BIOPSY_FREE"
 
 
+def test_contradiction_blocks_safe(triage):
+    """High contradiction_severity must veto SAFE_BIOPSY_FREE even when all else qualifies."""
+    kwargs = dict(top_certainty=0.80, conflict_load=0.10, fsm_state=FSMState.RESOLVED)
+    assert triage.recommend(**kwargs, contradiction_severity=0.10) == "SAFE_BIOPSY_FREE"
+    assert triage.recommend(**kwargs, contradiction_severity=0.50) != "SAFE_BIOPSY_FREE"
+
+
+def test_contradiction_defaults_to_permissive(triage):
+    """Omitting contradiction_severity must not silently block SAFE_BIOPSY_FREE."""
+    result = triage.recommend(
+        top_certainty=0.80, conflict_load=0.10, fsm_state=FSMState.RESOLVED
+    )
+    assert result == "SAFE_BIOPSY_FREE"
+
+
+def test_batch_recommend_reads_contradiction_column(triage):
+    """batch_recommend must actually consult contradiction_severity, not ignore it."""
+    base = {
+        "certainty_psoriasis": 0.85, "certainty_seborrheic_dermatitis": 0.0,
+        "certainty_lichen_planus": 0.0, "certainty_pityriasis_rosea": 0.0,
+        "certainty_chronic_dermatitis": 0.0, "certainty_pityriasis_rubra_pilaris": 0.0,
+        "conflict_load": 0.05, "fsm_state": 4,
+    }
+    data = pd.DataFrame([
+        {**base, "contradiction_severity": 0.0},
+        {**base, "contradiction_severity": 0.60},
+    ])
+    result = triage.batch_recommend(data)
+    assert result.iloc[0] == "SAFE_BIOPSY_FREE"
+    assert result.iloc[1] != "SAFE_BIOPSY_FREE"
+
+
 def test_batch_recommend_length(triage):
     data = pd.DataFrame([
         {

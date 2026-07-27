@@ -42,7 +42,13 @@ def get_xgb_params_c() -> dict:
 
 
 def get_catboost_params_c() -> dict:
-    """CatBoost params for Model C. Selected by 108-combo CV sweep; best val acc with minimal train-val gap."""
+    """
+    CatBoost params for Model C. Selected by 108-combo CV sweep; best val acc with minimal train-val gap.
+    No od_type/od_wait: on this 366-patient dataset (PRP=20), any eval_set split needed to make the
+    overfitting detector functional costs real accuracy (88.79% -> 81.69%, tested) — there's no
+    train-val gap to reclaim (+0.0119, already at the dataset's ceiling), so the detector would be
+    solving a problem that doesn't exist here, at the cost of one that does (data scarcity).
+    """
     return {
         "iterations": 200,
         "depth": 3,
@@ -54,8 +60,6 @@ def get_catboost_params_c() -> dict:
         "verbose": 0,
         "loss_function": "MultiClass",
         "eval_metric": "Accuracy",
-        "od_type": "Iter",
-        "od_wait": 30,
     }
 
 

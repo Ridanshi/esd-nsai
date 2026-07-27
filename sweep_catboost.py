@@ -52,8 +52,6 @@ for i, vals in enumerate(combos):
             random_seed=RANDOM_STATE,
             verbose=0,
             loss_function="MultiClass",
-            od_type="Iter",
-            od_wait=30,
         )
         model.fit(X.iloc[train_idx], y.iloc[train_idx])
         train_accs.append(accuracy_score(y.iloc[train_idx], model.predict(X.iloc[train_idx]).flatten()))

@@ -83,6 +83,22 @@ def test_engineer_dataframe_shape(engineer, psoriasis_fuzzy):
     assert result.shape == (5, len(ENGINEERED_FEATURE_NAMES))
 
 
+def test_inflammation_burden_spans_full_range(engineer, zero_patient):
+    """Divisor must be 3.0 (max of the 3 fuzzy inputs), not 9.0 — else range compresses to [0, 0.333]."""
+    maxed = zero_patient.copy()
+    maxed["erythema"] = maxed["scaling"] = maxed["itching"] = 1.0
+    assert engineer.engineer_series(maxed)["inflammation_burden"] == pytest.approx(1.0)
+    assert engineer.engineer_series(zero_patient)["inflammation_burden"] == pytest.approx(0.0)
+
+
+def test_scale_erythema_ratio_is_clipped(engineer, zero_patient):
+    """Unbounded ratio hits 100x when erythema=0; must clip at 3.0."""
+    no_erythema = zero_patient.copy()
+    no_erythema["scaling"] = 1.0
+    no_erythema["erythema"] = 0.0
+    assert engineer.engineer_series(no_erythema)["scale_erythema_ratio"] == pytest.approx(3.0)
+
+
 def test_all_values_finite(engineer, psoriasis_fuzzy):
     result = engineer.engineer_series(psoriasis_fuzzy)
     assert all(np.isfinite(v) for v in result.values)

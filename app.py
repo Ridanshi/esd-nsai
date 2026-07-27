@@ -365,8 +365,10 @@ def predict(model, grader, engineer, sym_pipeline, raw, rule_engine):
     cert_cols = [c for c in X_sym.columns if c.startswith("certainty_")]
     top_cert  = float(X_sym[cert_cols].iloc[0].max())
     conflict  = float(X_sym["conflict_load"].iloc[0]) if "conflict_load" in X_sym.columns else 0.0
+    contra    = float(X_sym["contradiction_severity"].iloc[0]) if "contradiction_severity" in X_sym.columns else 0.0
     fsm_val   = int(X_sym["fsm_state"].iloc[0])       if "fsm_state"    in X_sym.columns else 0
-    rec       = BiopsyTriage().recommend(top_certainty=top_cert, conflict_load=conflict, fsm_state=fsm_val)
+    rec       = BiopsyTriage().recommend(top_certainty=top_cert, conflict_load=conflict, fsm_state=fsm_val,
+                                         contradiction_severity=contra)
     FSM_NAMES = ["Evidence Sparse","Hypothesis Forming","Building Evidence","Diagnostic Tension","Resolved"]
     return {
         "disease":     pred_dis,
@@ -376,6 +378,7 @@ def predict(model, grader, engineer, sym_pipeline, raw, rule_engine):
         "sym_cert":    {d: float(X_sym[f"certainty_{d}"].iloc[0]) for d in DISEASES if f"certainty_{d}" in X_sym.columns},
         "fsm":         FSM_NAMES[min(fsm_val, 4)],
         "conflict":    conflict,
+        "contradiction": contra,
         "fired":       rule_engine.get_fired_rules(X_fuzzy.iloc[0]),
     }
 
@@ -489,10 +492,11 @@ with right:
         st.markdown(f'<div class="conf-row"><span class="conf-lbl">Confidence</span><span class="conf-pct">{conf*100:.1f}%</span></div>', unsafe_allow_html=True)
         st.progress(conf)
 
-        m1, m2, m3 = st.columns(3)
+        m1, m2, m3, m4 = st.columns(4)
         m1.metric("Confidence",  f"{conf*100:.1f}%")
         m2.metric("Diagnostic State", res["fsm"].split()[0])
         m3.metric("Conflict Load", f"{res['conflict']:.3f}")
+        m4.metric("Contradiction", f"{res['contradiction']:.3f}")
 
         # ── Triage ─────────────────────────────────────────
         st.markdown(f"""

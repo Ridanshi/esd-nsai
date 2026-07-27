@@ -8,11 +8,11 @@ This started as an audit log (`changes-tobe.md`) — 10 findings from a full rea
 
 ## Who did this, and what that means for you
 
-**Ridanshi Agarwal (23BCI0026) wrote the entire HSCIS-ESD codebase.** Everything in `src/`, `rules/`, `app.py`, and the pipeline scripts is his work.
+**Ridanshi Agarwal (23BCI0026) wrote the entire HSCIS-ESD codebase.** Everything in `src/`, `rules/`, `app.py`, and the pipeline scripts is her work.
 
 **Hritwik (23BAI0054) did the audit and the changes recorded here** — he did not write the original system. The audit phase was deliberately read-only; the implementation phase came later, only after explicit sign-off, and lives on a separate branch (`hritwik/audit-fixes`) so `main` stays untouched until Ridanshi reviews it.
 
-**If you are a new agent working for Ridanshi:** do not assume the changes below are approved. They are *proposed and verified*, pending his review. Two items are explicitly left as his decisions (see "Still open" below) — do not silently resolve them.
+**If you are a new agent working for Ridanshi:** do not assume the changes below are approved. They are *proposed and verified*, pending her review. Two items are explicitly left as her decisions (see "Still open" below) — do not silently resolve them.
 
 ## Status at a glance
 
@@ -67,7 +67,7 @@ Re-run after every change, all green:
 
 `requirements.txt` only lists `xgboost` (leftover from before the CatBoost switch).
 
-**Why it matters:** `pip install -r requirements.txt` followed by `streamlit run app.py` or `python eval_run.py` will fail with `ModuleNotFoundError` on a clean environment. Anyone cloning the repo fresh (including your friend on a new machine) hits this immediately.
+**Why it matters:** `pip install -r requirements.txt` followed by `streamlit run app.py` or `python eval_run.py` will fail with `ModuleNotFoundError` on a clean environment. Anyone cloning the repo fresh (including Ridanshi on a new machine) hits this immediately.
 
 **Fix — DONE:** Added `streamlit>=1.30.0` and `catboost>=1.2.0` to `requirements.txt`. `xgboost` deliberately kept — still used by Models A/B, `ablation.py`, `diagnose_fit.py`, `sweep_params.py`.
 
@@ -79,7 +79,7 @@ Re-run after every change, all green:
 
 **Problem:** Documents Model C at 86.61% ± 3.55% (XGBoost, tuned 2026-07-11). Actual current model (per `README.md`, `paper.md`, `app.py`) is CatBoost at 88.79% ± 3.34%, switched in commit `c304290` and tuned further in `1c56f4f`. `session.md` also doesn't mention `app.py` (Streamlit UI, commits `937c6c8` onward) or the reasoning-trace UI iterations (5 commits polishing it).
 
-**Why it matters:** `session.md` is the dev log — if your friend or a collaborator reads it to catch up on state, it describes a model and feature set that's one full architecture generation behind what's actually in the repo.
+**Why it matters:** `session.md` is the dev log — if Ridanshi or a collaborator reads it to catch up on state, it describes a model and feature set that's one full architecture generation behind what's actually in the repo.
 
 **Fix — DONE:** Added §20 (CatBoost migration + tuning + Streamlit app, with commit hashes and deltas) and §21 (re-checked "What Is Left") to `session.md`, and corrected its header date. Original intent below.
 
@@ -187,9 +187,9 @@ no_specific_morphology     min=0.0000  max=1.0000
 
 Confirmed via git history this is intentional hand-tuning, not drift: commit `b6e6516` shows `LIC_B02` explicitly revised from `weight: 0.6` to `weight: 0.7` with the added comment *"Oral mucosal involvement (Wickham's striae) is highly specific to lichen planus"* — a judgment call, not a computed adjustment.
 
-**Why this is worth flagging (as methodology, not a defect):** the rest of this pipeline holds itself to an empirical-validation standard — the 8 engineered features were hand-designed *then* checked against the dataset via mutual information scoring (`select_features.py`, MI≥0.05 threshold, one feature dropped for failing it); CatBoost hyperparameters went through a 108-combination CV sweep (`sweep_catboost.py`). Rule weights are the one component of the 29-feature pipeline that skips this step entirely — designed from textbook authority and never checked against outcomes (e.g. "does bumping LIC_B02 to 0.7 actually improve lichen planus classification, or reduce error elsewhere?" is never asked). This is a legitimate, traditional way to build expert systems (MYCIN, cited in `paper.md`'s own related work, worked the same way) — not inherently wrong — but it is an asymmetry in rigor between two parts of the same system that's worth your friend being aware of, particularly since `paper.md` markets the rule library as "expert-encoded" without noting this contrast to the empirically-validated feature engineering step sitting right next to it.
+**Why this is worth flagging (as methodology, not a defect):** the rest of this pipeline holds itself to an empirical-validation standard — the 8 engineered features were hand-designed *then* checked against the dataset via mutual information scoring (`select_features.py`, MI≥0.05 threshold, one feature dropped for failing it); CatBoost hyperparameters went through a 108-combination CV sweep (`sweep_catboost.py`). Rule weights are the one component of the 29-feature pipeline that skips this step entirely — designed from textbook authority and never checked against outcomes (e.g. "does bumping LIC_B02 to 0.7 actually improve lichen planus classification, or reduce error elsewhere?" is never asked). This is a legitimate, traditional way to build expert systems (MYCIN, cited in `paper.md`'s own related work, worked the same way) — not inherently wrong — but it is an asymmetry in rigor between two parts of the same system that's worth Ridanshi being aware of, particularly since `paper.md` markets the rule library as "expert-encoded" without noting this contrast to the empirically-validated feature engineering step sitting right next to it.
 
-**Not proposing a fix here** — recalibrating rule weights against outcome data would be a nontrivial methodology change and is a judgment call for your friend to decide is worth doing, not something to silently change.
+**Not proposing a fix here** — recalibrating rule weights against outcome data would be a nontrivial methodology change and is a judgment call for Ridanshi to decide is worth doing, not something to silently change.
 
 **Measurement tool built and run — `ablation_rules.py`, no weights changed.** Zeroes each of the 45 rules' weight one at a time (in memory only, `rules/*.yaml` untouched), rebuilds the full 29-feature pipeline, reruns identical 10-fold CV CatBoost, restores the weight, moves to the next rule. Baseline: acc=0.8879, macroF1=0.8850.
 
@@ -226,7 +226,7 @@ LIC_B01    lichen_planus                 B    0.60  +0.0083  +0.0080
 - `git log --follow -- src/triage/biopsy_triage.py` shows exactly **one commit in the file's entire history** (`2e23294`, initial creation). Never revised since.
 - Chronological check: `ConflictAnalyzer` (commit `4c9d884`, which computes `contradiction_severity`) was written **before** `BiopsyTriage` (`2e23294`). The value was already fully computed and available at the moment `BiopsyTriage` was designed — it wasn't a case of the signal not existing yet.
 - No commit message, code comment, `session.md` entry, or paper section ever discusses why it was left out.
-- `session.md`'s "What Is Left" list has a related open item — *"Threshold sweep for BiopsyTriage — vary SAFE threshold 0.60–0.85"* — showing your friend was thinking about tuning the *existing 3 inputs'* threshold values, never about adding a 4th input.
+- `session.md`'s "What Is Left" list has a related open item — *"Threshold sweep for BiopsyTriage — vary SAFE threshold 0.60–0.85"* — showing Ridanshi was thinking about tuning the *existing 3 inputs'* threshold values, never about adding a 4th input.
 
 **Empirically verified this isn't a trivial signal to leave out.** Trained the real Model C CatBoost pipeline twice — with and without `contradiction_severity` in the 29-feature vector (identical CV split, identical hyperparameters):
 
@@ -367,7 +367,7 @@ Mean accuracy matches; the standard deviation and macro F1 do not.
 
 **Why it matters:** the abstract's headline **"44% reduction in prediction variance"** is computed from the stale ±6.01% (1 − 3.34/6.01 = 44.4%). Against the real ±5.88%, it is **43.3%**. A reviewer re-running `eval_run.py` gets a different number than the abstract claims.
 
-**Fix (not applied):** re-run `eval_run.py`, update B's row in all four locations, and reword the "44%" claim to 43%. Left for Ridanshi — it changes a headline claim in his paper.
+**Fix (not applied):** re-run `eval_run.py`, update B's row in all four locations, and reword the "44%" claim to 43%. Left for Ridanshi — it changes a headline claim in her paper.
 
 ---
 
@@ -423,4 +423,4 @@ Two dead-code items were found and left alone on purpose, recorded here so nobod
 
 ## Not included here
 
-Anything that's a specific design-choice *value* rather than a bug, doc-drift, or unvalidated-methodology gap (e.g. exact FSM thresholds, individual D-tier weight numbers, biopsy triage cutoffs) is not listed — those reflect clinical judgment calls your friend made deliberately, not something to "fix" without discussing intent first. (Finding #6 above flags the *absence of a validation process* for these values, not any specific value being wrong.)
+Anything that's a specific design-choice *value* rather than a bug, doc-drift, or unvalidated-methodology gap (e.g. exact FSM thresholds, individual D-tier weight numbers, biopsy triage cutoffs) is not listed — those reflect clinical judgment calls Ridanshi made deliberately, not something to "fix" without discussing intent first. (Finding #6 above flags the *absence of a validation process* for these values, not any specific value being wrong.)

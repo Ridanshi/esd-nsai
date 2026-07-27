@@ -8,7 +8,7 @@
 
 ## Who's asking, and what this track actually is
 
-Hritwik (23BAI0054) is a teammate on this project — **Ridanshi Agarwal (23BCI0026) built the entire HSCIS-ESD codebase**; Hritwik did not write any of it. This session's whole purpose has been **deep understanding and independent audit**, not implementation. Nothing in `src/`, `rules/`, or any pipeline script has been modified — confirmed via `git status`, only new files were created (this file, `architecture.md`, `changes-made.md`, the review deck). That boundary is deliberate: findings get flagged for Ridanshi's review, not silently fixed, since it's his authored work and his call on intent.
+Hritwik (23BAI0054) is a teammate on this project — **Ridanshi Agarwal (23BCI0026) built the entire HSCIS-ESD codebase**; Hritwik did not write any of it. This session's whole purpose has been **deep understanding and independent audit**, not implementation. Nothing in `src/`, `rules/`, or any pipeline script has been modified — confirmed via `git status`, only new files were created (this file, `architecture.md`, `changes-made.md`, the review deck). That boundary is deliberate: findings get flagged for Ridanshi's review, not silently fixed, since it's her authored work and her call on intent.
 
 Course context: **BCSE 497J – Project-I**, faculty guide **Dr. Gunavathi C**. First review presentation already built this session (see below).
 
@@ -81,4 +81,4 @@ Quick index (full detail, evidence, and proposed fixes are in the file itself):
 2. Decide whether to actually run the proposed `rsm`/`min_data_in_leaf`/`random_strength` targeted sweep from finding #8 (would produce numbers that could differ from the currently-published 88.79%, needs review before folding into official results)
 3. At some point, hand `changes-made.md` to Ridanshi for a real conversation about which findings to act on — this session has deliberately stopped short of that
 
-**Update (post-audit):** step 2 was done (finding #8 — swept, no gain, no change made) and step 3's implementation half was carried out on branch `hritwik/audit-fixes`. The *conversation* with Ridanshi still hasn't happened — that remains the real next step, and two items (#7's threshold, #6's rule weights) are deliberately parked for him.
+**Update (post-audit):** step 2 was done (finding #8 — swept, no gain, no change made) and step 3's implementation half was carried out on branch `hritwik/audit-fixes`. The *conversation* with Ridanshi still hasn't happened — that remains the real next step, and two items (#7's threshold, #6's rule weights) are deliberately parked for her.

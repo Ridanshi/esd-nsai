@@ -1,6 +1,9 @@
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
-from ucimlrepo import fetch_ucirepo
+
+DATA_CACHE_PATH = Path(__file__).resolve().parents[2] / "data" / "dermatology_raw.csv"
 
 CLINICAL_FEATURES = [
     "erythema", "scaling", "definite_borders", "itching",
@@ -35,6 +38,40 @@ CLASS_MAP = {
 _CACHE = {}
 
 
+def _load_raw() -> tuple:
+    """
+    Returns (X, y_raw) straight from source, before any cleaning.
+    Reads the bundled data/dermatology_raw.csv when present so the app
+    never depends on a live call to UCI's servers at runtime. Falls back
+    to fetching from UCI (and writing the cache file for next time) only
+    if that local copy is missing.
+    """
+    if DATA_CACHE_PATH.exists():
+        df = pd.read_csv(DATA_CACHE_PATH)
+        y_raw = df["class"]
+        X = df.drop(columns=["class"])
+        return X, y_raw
+
+    from ucimlrepo import fetch_ucirepo
+
+    try:
+        raw = fetch_ucirepo(id=33)
+    except Exception as exc:
+        raise RuntimeError(
+            f"No local dataset cache at {DATA_CACHE_PATH} and the live fetch "
+            f"from UCI failed ({exc}). Run scripts/cache_dataset.py with a "
+            "working network connection, or restore data/dermatology_raw.csv."
+        ) from exc
+
+    X = raw.data.features.copy()
+    y_raw = raw.data.targets.iloc[:, 0]
+
+    DATA_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    pd.concat([X, y_raw.rename("class")], axis=1).to_csv(DATA_CACHE_PATH, index=False)
+
+    return X, y_raw
+
+
 def load_dataset() -> tuple:
     """
     Returns (X_clinical, X_histopath, X_all, y).
@@ -44,9 +81,8 @@ def load_dataset() -> tuple:
     if _CACHE:
         return _CACHE["result"]
 
-    raw = fetch_ucirepo(id=33)
-    X = raw.data.features.copy()
-    y_raw = raw.data.targets.iloc[:, 0]
+    X, y_raw = _load_raw()
+    X = X.copy()
 
     # Standardise column names: lowercase, spaces/hyphens -> underscores
     X.columns = [c.lower().replace(" ", "_").replace("-", "_") for c in X.columns]
